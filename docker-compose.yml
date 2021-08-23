@@ -1,0 +1,22 @@
+networks:
+  ros-network:
+    driver: bridge
+    name: ros-network
+
+services:
+  ros-master:
+    build: ./dockerfiles/ros-extended
+    container_name: ros-master
+    image: ros-extended
+    networks:
+      - ros-network
+    stdin_open: true # -i
+    tty: true        # -t
+  python-ros:
+    build: ./dockerfiles/python-rospylib
+    container_name: no-ros
+    image: python-rospylib
+    networks:
+      - ros-network
+    stdin_open: true # -i
+    tty: true        # -t
