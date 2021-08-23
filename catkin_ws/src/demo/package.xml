@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>demo</name>
+  <version>0.0.1</version>
+  <description>A package to demonstrate ROS nodes communitcating over a network</description>
+  <maintainer email="cameron.pappas@mq.edu.au">Cameron Pappas</maintainer>
+  <license>BSD</license>
+  <author email="matthew.roberts@mq.edu.au">Matthew Roberts</author>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <export></export>
+</package>
