@@ -4,18 +4,20 @@ networks:
     name: ros-network
 
 services:
-  ros-master:
-    build: ./images/ros-extended
-    container_name: ros-master
-    image: ros-extended
+  master:
+    build: ./images/master
+    container_name: master
+    hostname: master # allows communication by name between containers
+    image: master
     networks:
       - ros-network
     stdin_open: true # -i
     tty: true        # -t
-  python-ros:
-    build: ./images/python-rospylib
-    container_name: no-ros
-    image: python-rospylib
+  logic_python:
+    build: ./images/logic_python
+    container_name: logic_python
+    hostname: logic_python
+    image: logic_python
     networks:
       - ros-network
     stdin_open: true # -i
