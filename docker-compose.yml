@@ -16,9 +16,16 @@ services:
   logic_python:
     build: ./images/logic_python
     container_name: logic_python
-    hostname: logic_python
+    hostname: logic_python # allows communication by name between containers
     image: logic_python
     networks:
       - ros-network
     stdin_open: true # -i
     tty: true        # -t
+  simulation:
+    build: ./images/sim
+    container_name: sim
+    hostname: sim
+    image: simulation
+    networks:
+      - ros-network
