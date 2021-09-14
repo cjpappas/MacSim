@@ -19,32 +19,23 @@ docker-compose up -d
 
 This will create:
 - A docker network, ros-network, which will act as the network both devices are connected to.
-- A ROS master container, called ros-master, which will be running the rosbridge suite.
-- A non-ROS container, called no-ros, which is running python with the [roslibpy](https://github.com/gramaziokohler/roslibpy) library.
+- A ROS master container, called `master`, which will be running the rosbridge suite.
+- A non-ROS container, called `logic_python`, which is running python with the [roslibpy](https://github.com/gramaziokohler/roslibpy) library.
+- A headless gazebo simulation (a ROS container) running the `vrx` scenario.
 
-Next we need to get the rosbridge server running on the master.
+All images start up the required servers and begin communicating.  The `ROS_MASTER_URI` is set in the gazebo node so that it uses the master node in the `master` container.
+
+You can connect to the master node to watch what is happening on the various topics with
+
 ```bash
-docker exec -it ros-master /bin/bash
-
-source /opt/ros/noetic/setup.bash
-
-roslaunch rosbridge_server rosbridge_websocket.launch
+docker exec -it master /bin/bash
 ```
-In a seperate terminal we can run the listener.
-```bash
-docker exec -it ros-master /bin/bash
+You still need to introduce all the ros paths etc in this shell, you can do that be prefacing any ros commands with `/ros_entrypoint.sh <command>` of by sourcing `>source /opt/ros/noetic/setup.bash`
 
-python3 /home/listener.py
-```
-Finally, in another terminal, we can start the talker.
+### For example
+You can watch the location of the wam-v in this scenario with
 
-**Note**: Make sure the host in the talker script matches the address of the ros-master container on the ros-network!
-```bash
-docker exec -it no-ros /bin/bash
-
-python /home/talker.py
-```
-The containers should now be talking to each other :).
+`/ros_entrypoint.sh rostopic echo /wamv/sensors/gps/gps/fix`
 
 ## Clean-up
 
@@ -52,3 +43,7 @@ To stop the demonstration and clean-up the containers and network.
 ```bash
 docker-compose down
 ```
+
+# Running a simultion to connect to some other hardware/software
+
+The `master` container binds all necessary ports to localhost when you run `docker compose up`, so you can talk to ROS directly with `localhost:11311` and to rosbridge on `localhost:9090`.  It is not yet tested, but I expect other ROS nodes on the network can set their `ROS_MASTER_URI` as necessary to connect to the `master` node running in the docker composition.
