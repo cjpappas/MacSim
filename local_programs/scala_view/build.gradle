@@ -1,0 +1,21 @@
+plugins {
+    // Apply the scala plugin to add support for Scala
+    id 'scala'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform("com.typesafe.akka:akka-bom_2.12:2.6.15")
+    implementation 'org.scala-lang:scala-library:2.12.6'
+    implementation 'com.typesafe.akka:akka-actor_2.12:2.6.15'
+    implementation 'com.typesafe.akka:akka-stream_2.12:2.6.15'
+    implementation 'com.typesafe.akka:akka-http_2.12:10.2.6'
+    implementation 'org.json4s:json4s-jackson_2.12:4.0.3'
+    implementation 'net.team2xh:scurses_2.12:1.0.1'
+ 
+    // Use Munit for testing our library
+    testImplementation 'org.scalameta:munit_2.12:0.7.27'
+}
