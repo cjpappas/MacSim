@@ -1,0 +1,25 @@
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:1:14: object of is not a member of package scala[0m
+[0m[[0m[31merror[0m] [0m[0mimport scala.of.coq.lang._[0m
+[0m[[0m[31merror[0m] [0m[0m             ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:2:8: not found: object Nat[0m
+[0m[[0m[31merror[0m] [0m[0mimport Nat._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:3:8: not found: object Pairs[0m
+[0m[[0m[31merror[0m] [0m[0mimport Pairs._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:4:8: not found: object Bools[0m
+[0m[[0m[31merror[0m] [0m[0mimport Bools._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:5:8: not found: object MoreLists[0m
+[0m[[0m[31merror[0m] [0m[0mimport MoreLists._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:7:8: not found: object MoreFutures[0m
+[0m[[0m[31merror[0m] [0m[0mimport MoreFutures._[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:9:38: not found: type Nat[0m
+[0m[[0m[31merror[0m] [0m[0m  def thruster_allocation(lat: Nat): Nat = lat[0m
+[0m[[0m[31merror[0m] [0m[0m                                     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:9:32: not found: type Nat[0m
+[0m[[0m[31merror[0m] [0m[0m  def thruster_allocation(lat: Nat): Nat = lat[0m
+[0m[[0m[31merror[0m] [0m[0m                               ^[0m
+[0m[[0m[31merror[0m] [0m[0m8 errors found[0m

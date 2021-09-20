@@ -11,12 +11,14 @@ object App {
 
   val processMessage: Function[String, Unit] = {(s: String) => 
     val data = parse(s)
+    println(s)
     craft.logData((data \\ "latitude").extract[Double],
                   (data \\ "longitude").extract[Double],
                   (data \\ "altitude").extract[Double]
     )
     print("\u001b[2J")
     println(f"(${craft.locs(0).lat}%2.2f,${craft.locs(0).long}%2.2f)@${craft.alts(0)}%2.2f")
+    println(ThrusterAllocation.thruster_allocation(1))
   }
 
   def main(args: Array[String]): Unit = {

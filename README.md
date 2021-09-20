@@ -30,7 +30,8 @@ You can connect to the master node to watch what is happening on the various top
 ```bash
 docker exec -it master /bin/bash
 ```
-You still need to introduce all the ros paths etc in this shell, you can do that be prefacing any ros commands with `/ros_entrypoint.sh <command>` of by sourcing `>source /opt/ros/noetic/setup.bash`
+You still need to introduce all the ros paths etc in this shell, you can do that be prefacing any ros commands with `/ros_entrypoint.sh <command>` of by sourcin
+g `>source /opt/ros/noetic/setup.bash`
 
 ### For example
 You can watch the location of the wam-v in this scenario with
@@ -47,3 +48,14 @@ docker-compose down
 # Running a simultion to connect to some other hardware/software
 
 The `master` container binds all necessary ports to localhost when you run `docker compose up`, so you can talk to ROS directly with `localhost:11311` and to rosbridge on `localhost:9090`.  It is not yet tested, but I expect other ROS nodes on the network can set their `ROS_MASTER_URI` as necessary to connect to the `master` node running in the docker composition.
+
+# Translating Coq to Scala with Scallina
+
+To translate a Coq file to Scala, a Scallina jar file has been added to the scala_view project. To translate a Coq file run:
+```bash
+java -jar local_programs/scala_view/lib/scallina-assembly-0.8-SNAPSHOT.jar <path-to-coq-source-file.v> > local_programs/scala_view/src/main/scala/<filename>.scala
+```
+For example:
+```bash
+java -jar local_programs/scala_view/lib/scallina-assembly-0.8-SNAPSHOT.jar local_programs/coq_thruster_allocation/ThrusterAllocation.v > local_programs/scala_view/src/main/scala/ThrusterAllocation.scala
+```
