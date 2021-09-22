@@ -2,3 +2,9 @@
 **/.metals
 **/.vscode
 
+# Coq build files
+**/*.aux
+**/*.glob
+
+# OCaml build files
+**/_build
