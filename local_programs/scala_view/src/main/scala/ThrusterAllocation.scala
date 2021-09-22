@@ -6,6 +6,6 @@ import MoreLists._
 import scala.concurrent.Future
 import MoreFutures._
 object ThrusterAllocation {
-  def thruster_allocation(lat: Nat): Nat = lat
+  def compute_thrust(n: Nat)(m: Nat)(nd: matrix[Nat, n, m]): Nat = 1
 }
 

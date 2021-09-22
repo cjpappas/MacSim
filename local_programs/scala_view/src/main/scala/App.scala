@@ -18,7 +18,8 @@ object App {
     )
     print("\u001b[2J")
     println(f"(${craft.locs(0).lat}%2.2f,${craft.locs(0).long}%2.2f)@${craft.alts(0)}%2.2f")
-    println(ThrusterAllocation.thruster_allocation(1))
+    // println(ThrusterAllocation.thruster_allocation(1))
+    println(ThrusterAllocation.compute_thrust(1, 3))
   }
 
   def main(args: Array[String]): Unit = {
