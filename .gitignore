@@ -5,6 +5,9 @@
 # Coq build files
 **/*.aux
 **/*.glob
+**/*.vo
+**/*.vok
+**/*.vos
 
 # OCaml build files
 **/_build

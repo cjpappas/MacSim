@@ -49,13 +49,22 @@ docker-compose down
 
 The `master` container binds all necessary ports to localhost when you run `docker compose up`, so you can talk to ROS directly with `localhost:11311` and to rosbridge on `localhost:9090`.  It is not yet tested, but I expect other ROS nodes on the network can set their `ROS_MASTER_URI` as necessary to connect to the `master` node running in the docker composition.
 
-# Translating Coq to Scala with Scallina
+# Coq program extraction to OCaml
 
-To translate a Coq file to Scala, a Scallina jar file has been added to the scala_view project. To translate a Coq file run:
+To extract programs from the coq files run:
 ```bash
-java -jar local_programs/scala_view/lib/scallina-assembly-0.8-SNAPSHOT.jar <path-to-coq-source-file.v> > local_programs/scala_view/src/main/scala/<filename>.scala
+coqc -quiet local_programs/coq_proofs/ThrusterAllocation.v
 ```
-For example:
+You will then need to drag the `ThursterAllocation.ml` file into the `ocaml_coq_extraction` directory located in `local_programs`
+
+# Compiling and running OCaml programs
+
+To run the OCaml program, first connect to the OCaml container
 ```bash
-java -jar local_programs/scala_view/lib/scallina-assembly-0.8-SNAPSHOT.jar local_programs/coq_thruster_allocation/ThrusterAllocation.v > local_programs/scala_view/src/main/scala/ThrusterAllocation.scala
+docker exec -it logic_ocaml /bin/bash
+```
+We are currently using [Dune](https://dune.build/) for building OCaml projects. To build and run the project:
+```bash
+dune build exe ThrusterAllocation
+./_build/default/ThrusterAllocation.exe
 ```
