@@ -7,19 +7,26 @@ import net.team2xh.scurses.Scurses
 object App {
   implicit val formats = DefaultFormats
 
-  val craft: Craft = new Craft(-33.7225534, 150, 10)
+  var craft: Option[Craft] = None
 
   val processMessage: Function[String, Unit] = {(s: String) => 
     val data = parse(s)
-    println(s)
-    craft.logData((data \\ "latitude").extract[Double],
-                  (data \\ "longitude").extract[Double],
-                  (data \\ "altitude").extract[Double]
+    craft match  {
+      case None => craft = Some(new Craft((data \\ "latitude").extract[Double],
+                                          (data \\ "longitude").extract[Double],
+                                          (data \\ "altitude").extract[Double]
+                                         ))
+      case _ => {}
+    }
+    craft.get.logData((data \\ "latitude").extract[Double],
+                      (data \\ "longitude").extract[Double],
+                      (data \\ "altitude").extract[Double]
     )
     print("\u001b[2J")
-    println(f"(${craft.locs(0).lat}%2.2f,${craft.locs(0).long}%2.2f)@${craft.alts(0)}%2.2f")
-    // println(ThrusterAllocation.thruster_allocation(1))
-    println(ThrusterAllocation.compute_thrust(1, 3))
+    println(f"(${craft.get.locs(0).lat}%2.2f,${craft.get.locs(0).long}%2.2f)@${craft.get.alts(0)}%2.2f")
+    println(f"x-drift: ${(craft.get.locs(0).lat - craft.get.lat) * 11139.0}%2.8f")
+    println(f"y-drift: ${(craft.get.locs(0).long - craft.get.long) * 11139.0}%2.8f")
+    println(f"z-drift: ${(craft.get.alts(0) - craft.get.alt)}%2.8f")
   }
 
   def main(args: Array[String]): Unit = {
