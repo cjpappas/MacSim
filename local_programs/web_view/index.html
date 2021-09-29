@@ -1,0 +1,216 @@
+<html>
+<meta charset="UTF-8">
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.3.0/rxjs.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    /* Always set the map height explicitly to define the size of the div
+      * element that contains the map. */
+    body {
+      font-family:Arial, Helvetica, sans-serif;
+    }
+    #map {
+      height: 400px;
+      width: 400px;
+    }
+
+    .vis {
+      display: inline-block;
+    }
+    </style>
+</head>
+
+<body>
+
+<div id="map" class="vis">
+    <script>
+      var map;
+      var marker;
+      var goal;
+      var sinks = {};
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: -33.722, lng: 150.67398},
+          zoom: 18,
+          mapTypeId: "satellite",
+        });
+        marker = new google.maps.Marker({
+          position: {lat: -33.722, lng:150.67398},
+          map,
+          title: "craft",
+        });
+        goal = new google.maps.Marker({
+          position: {lat: -33.722, lng:150.67398},
+          map,
+          title: "goal",
+        });
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
+    async defer></script>
+</div>
+<script>
+sinks["/wamv/sensors/gps/gps/fix"] = (msg) => {
+  latlng = {lat: msg.msg.latitude, lng: msg.msg.longitude}
+  marker.setPosition(latlng);
+}
+sinks["/vrx/station_keeping/goal"] = (msg) => {
+  latlng = {lat: msg.msg.pose.position.latitude, lng: msg.msg.pose.position.longitude}
+  goal.setPosition(latlng);
+}
+</script>
+<div class="vis">
+  <p>GPS Velocity:<ul><li>x: <span id="gps_vel_x"></span></li><li>y: <span id="gps_vel_y"></span></li></ul></p>
+  <script>
+  sinks["/wamv/sensors/gps/gps/fix_velocity"] = (msg) => {
+    document.getElementById("gps_vel_x").innerHTML = msg.msg.vector.x.toFixed(6);
+    document.getElementById("gps_vel_y").innerHTML = msg.msg.vector.y.toFixed(6);
+  }
+  </script>
+
+  <p>IMU:<ul><li>Direction (z-rotation): <span id="imu_direction"></span></li><li>Angular Velocity (z): <span id="imu_vel_z"></span></li></ul></p>
+  <script>
+  sinks["/wamv/sensors/imu/imu/data"] = (msg) => {
+    var eu = new THREE.Euler();
+    var ex = new THREE.Quaternion(msg.msg.orientation.x, msg.msg.orientation.y, msg.msg.orientation.z, msg.msg.orientation.w);
+    eu.setFromQuaternion(ex)
+    document.getElementById("imu_direction").innerHTML = (eu.z*360/Math.PI*2).toFixed(6);
+    document.getElementById("imu_vel_z").innerHTML = msg.msg.angular_velocity.x.toFixed(6);
+  }
+  </script>
+
+  <p>Wind:<ul><li>Direction: <span id="wind_direction"></span></li><li>Speed: <span id="wind_speed"></span></li></ul></p>
+  <script>
+  sinks["/vrx/debug/wind/direction"] = (msg) => {
+    document.getElementById("wind_direction").innerHTML = msg.msg.data.toFixed(6);
+  }
+  sinks["/vrx/debug/wind/speed"] = (msg) => {
+    document.getElementById("wind_speed").innerHTML = msg.msg.data.toFixed(6);
+  }
+  </script>
+
+  <p>Pose Error:<ul><li>Current: <span id="pose_error"></span></li><li>Mean: <span id="pose_error_mean"></span></li></ul></p>
+  <script>
+  sinks["/vrx/station_keeping/pose_error"] = (msg) => {
+    document.getElementById("pose_error").innerHTML = msg.msg.data.toFixed(6);
+  }
+  sinks["/vrx/station_keeping/mean_pose_error"] = (msg) => {
+    document.getElementById("pose_error_mean").innerHTML = msg.msg.data.toFixed(6);
+  }
+  </script>
+</div>
+
+<div class="vis">
+  <p>
+    <label>Thrusters</label><input id="thruster" type="range" min="0" max="100" value="0">
+    <script>
+      // send thruster data every second
+      setInterval(() => {
+        master.next({op: "publish", topic: "/wamv/thrusters/left_thrust_cmd", msg: {data: parseFloat(document.getElementById("thruster").value)}})
+        master.next({op: "publish", topic: "/wamv/thrusters/right_thrust_cmd", msg: {data: parseFloat(document.getElementById("thruster").value)}})
+      }, 1000)
+    </script>
+  </p>
+  <p>
+    <label>Rudders</label><input id="thruster" type="range" min="0" max="100" value="50">
+    <script>
+      // send thruster data every second
+      setInterval(() => {
+        master.next({op: "publish", topic: "/wamv/thrusters/left_thrust_angle", msg: {data: parseFloat(document.getElementById("thruster").value)-50.0}})
+        master.next({op: "publish", topic: "/wamv/thrusters/right_thrust_angle", msg: {data: parseFloat(document.getElementById("thruster").value)-50.0}})
+      }, 1000)
+    </script>
+  </p>
+</div>
+
+<h3>Altitude</h3>
+<canvas id="altitude" width="100" height="100" style="border:1px solid grey"></canvas>
+
+<h3>Angular Velocity</h3>
+<canvas id="angular_velocity" width="100" height="100" style="border:1px solid grey"></canvas>
+
+<h3>GPS Velocity</h3>
+<p>x:<span id="gps_x"></span></p>
+<p>y:<span id="gps_y"></span></p>
+<canvas id="gps_velocity" width="100" height="100" style="border:1px solid grey"></canvas>
+
+<h3>IMU Orientation</h3>
+<p>z ang:<span id="imu_z"></span></p>
+<canvas id="imu_orientation" width="100" height="100" style="border:1px solid grey"></canvas>
+
+<script>
+  const { WebSocketSubject } = rxjs.webSocket;
+  master = new WebSocketSubject("ws://localhost:9090");
+  master.subscribe(
+    msg => {
+      sinks[msg.topic](msg);
+    },
+    err => console.log("ERROR: " + err),
+    () => console.log("COMPLETE")
+  );
+  for(key in sinks){
+    console.log(key);
+    master.next({op: "subscribe", topic: key})
+  }
+  // master.subscribe(
+  //   msg => {
+  //     if (msg.topic === "/wamv/sensors/gps/gps/fix"){
+  //       // altitude set
+  //       var ctx = document.getElementById("altitude").getContext("2d");
+  //       ctx.fillStyle = "#FFFFFF";
+  //       ctx.fillRect(0,0,100,100);
+  //       ctx.beginPath();
+  //       ctx.arc(50, 200-(msg.msg.altitude)*100, 2, 0, 2 * Math.PI);
+  //       ctx.stroke();
+
+  //       // location set (using google map)
+  //       latlng = {lat: msg.msg.latitude, lng: msg.msg.longitude}
+  //       marker.setPosition(latlng);
+  //     }
+  //     if (msg.topic === "/wamv/sensors/imu/imu/data"){
+  //       var ctx = document.getElementById("angular_velocity").getContext("2d");
+  //       ctx.fillStyle = "#FFFFFF";
+  //       ctx.fillRect(0,0,100,100);
+  //       ctx.beginPath();
+  //       ctx.moveTo(50,50);
+  //       ctx.lineTo(50+msg.msg.angular_velocity.x*1000,50+msg.msg.angular_velocity.y*1000); // TODO: x and y according to the GPS are NORTH and EAST.  I was expecting the opposite :/
+  //       ctx.stroke();
+
+  //       var eu = new THREE.Euler();
+  //       var ex = new THREE.Quaternion(msg.msg.orientation.x, msg.msg.orientation.y, msg.msg.orientation.z, msg.msg.orientation.w);
+  //       eu.setFromQuaternion(ex)
+  //       var ctx = document.getElementById("imu_orientation").getContext("2d");
+  //       ctx.fillStyle = "#FFFFFF";
+  //       ctx.fillRect(0,0,100,100);
+  //       ctx.beginPath();
+  //       ctx.moveTo(50, 50)
+  //       var thisAngle = Math.PI/2 - eu.z;
+  //       ctx.lineTo(50+ 25*Math.cos(thisAngle), 50 + 25*Math.sin(thisAngle));
+  //       ctx.stroke();
+  //       document.getElementById("imu_z").innerHTML = eu.z.toFixed(6);
+
+  //     }
+  //     if (msg.topic === "/wamv/sensors/gps/gps/fix_velocity"){
+  //       var ctx = document.getElementById("gps_velocity").getContext("2d");
+  //       ctx.fillStyle = "#FFFFFF";
+  //       ctx.fillRect(0,0,100,100);
+  //       ctx.beginPath();
+  //       ctx.moveTo(50,50);
+  //       ctx.lineTo(50-msg.msg.vector.y*30,50-msg.msg.vector.x*30);
+  //       document.getElementById("gps_x").innerHTML = msg.msg.vector.x.toFixed(6);
+  //       document.getElementById("gps_y").innerHTML = msg.msg.vector.y.toFixed(6);
+  //       ctx.stroke();
+  //     }
+  //   },
+  //   err => console.log("ERROR: " + err),
+  //   () => console.log("COMPLETE")
+  // );
+  // master.next({op: "subscribe", topic: "/wamv/sensors/gps/gps/fix"});
+  // master.next({op: "subscribe", topic: "/wamv/sensors/gps/gps/fix_velocity"});
+  // master.next({op: "subscribe", topic: "/wamv/sensors/imu/imu/data"});
+
+</script>
+
+</body>
+
+</html>

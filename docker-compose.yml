@@ -2,7 +2,6 @@ networks:
   ros-network:
     driver: bridge
     name: ros-network
-
 services:
   master:
     build: ./images/master
@@ -15,7 +14,9 @@ services:
     tty: true        # -t
     ports:
       - 11311:11311
-      - 9090:9090
+      - 9090:9090    # allows host application to talk to master
+    environment:
+      - ROS_MASTER_URI=http://master:11311
   logic_python:
     build: ./images/logic_python
     container_name: logic_python
@@ -41,7 +42,15 @@ services:
     container_name: sim
     hostname: sim
     image: simulation
+    runtime: nvidia
     networks:
       - ros-network
-    stdin_open: true
-    tty: true
+    stdin_open: true # -i
+    tty: true        # -t
+    environment:
+      - DISPLAY=192.168.0.7:0
+    volumes:
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+    ports:
+      - 11311:11311
+      - 9090:9090    # allows host application to talk to master
