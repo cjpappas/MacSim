@@ -49,6 +49,8 @@ services:
     tty: true        # -t
     environment:
       - DISPLAY=192.168.0.7:0
-      - ROS_MASTER_URI=http://master:11311
     volumes:
       - /tmp/.X11-unix/:/tmp/.X11-unix
+    ports:
+      - 11311:11311
+      - 9090:9090    # allows host application to talk to master
