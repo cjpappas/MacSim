@@ -25,15 +25,15 @@ services:
       - ros-network
     stdin_open: true # -i
     tty: true        # -t
-  logic_ocaml:
-    build: ./images/logic_ocaml
-    container_name: logic_ocaml
-    hostname: logic_ocaml
-    image: logic_ocaml
+  logic_hasekll:
+    build: ./images/logic_haskell
+    container_name: logic_haskell
+    hostname: logic_haskell
+    image: logic_haskell
     networks:
       - ros-network
     volumes:
-      - ./local_programs/ocaml_coq_extraction:/home/opam/thruster_allocation
+      - ./local_programs/haskell_coq_extraction:/home/thruster_allocation
     stdin_open: true
     tty: true
   simulation:
@@ -43,3 +43,5 @@ services:
     image: simulation
     networks:
       - ros-network
+    stdin_open: true
+    tty: true

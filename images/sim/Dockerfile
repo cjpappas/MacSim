@@ -9,4 +9,4 @@ RUN cd ~/vrx_ws/ \
  && catkin_make
 CMD source ~/vrx_ws/devel/setup.bash \
  && export ROS_MASTER_URI=http://master:11311 \
- && roslaunch --wait vrx_gazebo vrx.launch gui:=false
+ && while true; do roslaunch --wait vrx_gazebo station_keeping.launch gui:=false; done
