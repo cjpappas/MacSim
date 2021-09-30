@@ -11,3 +11,6 @@
 
 # OCaml build files
 **/_build
+
+
+**/.DS_Store

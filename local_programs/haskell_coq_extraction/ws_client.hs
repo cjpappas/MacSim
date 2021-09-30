@@ -37,4 +37,4 @@ app conn = do
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = withSocketsDo $ WS.runClient "172.18.0.5" 9090 "/" app
+main = withSocketsDo $ WS.runClient "master" 9090 "/" app
