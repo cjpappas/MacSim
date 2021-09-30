@@ -3,6 +3,7 @@
 <head>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.3.0/rxjs.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
   <style>
     /* Always set the map height explicitly to define the size of the div
       * element that contains the map. */
@@ -74,7 +75,7 @@ sinks["/vrx/station_keeping/goal"] = (msg) => {
     var eu = new THREE.Euler();
     var ex = new THREE.Quaternion(msg.msg.orientation.x, msg.msg.orientation.y, msg.msg.orientation.z, msg.msg.orientation.w);
     eu.setFromQuaternion(ex)
-    document.getElementById("imu_direction").innerHTML = (eu.z*360/Math.PI*2).toFixed(6);
+    document.getElementById("imu_direction").innerHTML = (eu.z).toFixed(6);
     document.getElementById("imu_vel_z").innerHTML = msg.msg.angular_velocity.x.toFixed(6);
   }
   </script>
@@ -102,22 +103,27 @@ sinks["/vrx/station_keeping/goal"] = (msg) => {
 
 <div class="vis">
   <p>
-    <label>Thrusters</label><input id="thruster" type="range" min="0" max="100" value="0">
+    <label>Thrusters</label><input id="thruster" type="range" name="points" min="-2" max="2" step="0.25"/><span id="thruster_val"></span>
     <script>
       // send thruster data every second
       setInterval(() => {
-        master.next({op: "publish", topic: "/wamv/thrusters/left_thrust_cmd", msg: {data: parseFloat(document.getElementById("thruster").value)}})
-        master.next({op: "publish", topic: "/wamv/thrusters/right_thrust_cmd", msg: {data: parseFloat(document.getElementById("thruster").value)}})
+        var thrust = parseFloat(document.getElementById("thruster").value);
+        console.log("trying to publish " + thrust);
+        master.next({op: "publish", topic: "/wamv/thrusters/left_thrust_cmd", msg: {data: thrust}})
+        master.next({op: "publish", topic: "/wamv/thrusters/right_thrust_cmd", msg: {data: thrust}})
+        document.getElementById("thruster_val").innerHTML = thrust
       }, 1000)
     </script>
   </p>
   <p>
-    <label>Rudders</label><input id="thruster" type="range" min="0" max="100" value="50">
+    <label>Rudders</label><input id="rudder" type="range" name="points" min="-1.5" max="1.5" step="0.1"/><span id="rudder_val"></span>
     <script>
       // send thruster data every second
       setInterval(() => {
-        master.next({op: "publish", topic: "/wamv/thrusters/left_thrust_angle", msg: {data: parseFloat(document.getElementById("thruster").value)-50.0}})
-        master.next({op: "publish", topic: "/wamv/thrusters/right_thrust_angle", msg: {data: parseFloat(document.getElementById("thruster").value)-50.0}})
+        var ang = parseFloat(document.getElementById("rudder").value)
+        master.next({op: "publish", topic: "/wamv/thrusters/left_thrust_angle", msg: {data: ang}})
+        master.next({op: "publish", topic: "/wamv/thrusters/right_thrust_angle", msg: {data: ang}})
+        document.getElementById("rudder_val").innerHTML = ang
       }, 1000)
     </script>
   </p>
@@ -149,9 +155,8 @@ sinks["/vrx/station_keeping/goal"] = (msg) => {
     () => console.log("COMPLETE")
   );
   for(key in sinks){
-    console.log(key);
     master.next({op: "subscribe", topic: key})
-  }
+  };
   // master.subscribe(
   //   msg => {
   //     if (msg.topic === "/wamv/sensors/gps/gps/fix"){

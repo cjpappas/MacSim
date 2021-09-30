@@ -48,7 +48,7 @@ services:
     stdin_open: true # -i
     tty: true        # -t
     environment:
-      - DISPLAY=192.168.0.7:0
+      - DISPLAY=${DISPLAY}
     volumes:
       - /tmp/.X11-unix/:/tmp/.X11-unix
     ports:
