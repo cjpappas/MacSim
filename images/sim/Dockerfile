@@ -22,5 +22,10 @@ RUN cd ~/vrx_ws/ \
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
 CMD source ~/vrx_ws/devel/setup.bash \
 #  && export ROS_MASTER_URI=http://master:11311 \
+<<<<<<< HEAD
  && while true; do roslaunch vrx_gazebo windy_station_keeping.launch gui:=false; done \
  & roslaunch rosbridge_server rosbridge_websocket.launch
+=======
+ && while true; do roslaunch vrx_gazebo station_keeping.launch gui:=false; done \
+ & roslaunch rosbridge_server rosbridge_websocket.launch
+>>>>>>> 635f361e43056096b94168d38ecb6aa22250cb87
