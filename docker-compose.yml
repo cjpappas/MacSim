@@ -41,7 +41,7 @@ services:
     build: ./images/sim
     container_name: sim
     hostname: sim
-    image: simulation
+    image: altmattr/simulation
     runtime: nvidia
     networks:
       - ros-network

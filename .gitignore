@@ -1,6 +1,10 @@
 # IDE settings
 **/.metals
 **/.vscode
+**/local_programs/scala_view/.metals
+**/local_programs/scala_view/.bloop
+**/local_programs/scala_view/.gradle
+**/local_programs/project
 
 # Coq build files
 **/*.aux
@@ -14,3 +18,5 @@
 
 
 **/.DS_Store
+local_programs/scala_view/project/
+local_programs/scala_view/target/
