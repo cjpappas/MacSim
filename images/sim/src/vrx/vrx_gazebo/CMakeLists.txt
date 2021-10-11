@@ -360,6 +360,7 @@ xacro_add_files(
   worlds/wayfinding_task.world.xacro
   worlds/wildlife_task.world.xacro
   worlds/windy_stationkeeping_task.world.xacro
+  worlds/timeless_stationkeeping_task.world.xacro
   ${XACRO_INORDER} INSTALL DESTINATION worlds
 )
 # Generate obstacle course
