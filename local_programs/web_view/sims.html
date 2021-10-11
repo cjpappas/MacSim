@@ -249,28 +249,28 @@ function deltaStats(start, end){
 
 var results=[]
 
-function runSim(rudder){
+function rudderSim(rudder){
     var trace1 = {
       x: results.map((x) => x.rudder),
       y: results.map((x) => x.ori),
       mode: "markers",
       type: "scatter"
     };
-    Plotly.newPlot("rudd", [trace1], {title:"Orientation change due to rudder (1/2 sec thruster)"});
+    Plotly.newPlot("rudd", [trace1], {title:"Orientation change due to rudder (1 sec thruster)"});
     var trace2 = {
       x: results.map((x) => x.rudder),
       y: results.map((x) => x.lat),
       mode: "markers",
       type: "scatter"
     };
-    Plotly.newPlot("lat", [trace2], {title:"Latitude change due to rudder (1/2 sec thruster)"});
+    Plotly.newPlot("lat", [trace2], {title:"Latitude change due to rudder (1 sec thruster)"});
     var trace3 = {
       x: results.map((x) => x.rudder),
       y: results.map((x) => x.lng),
       mode: "markers",
       type: "scatter"
     }
-    Plotly.newPlot("lng", [trace3], {title:"Longitutde change due to rudder (1/2 sec thruster)"})
+    Plotly.newPlot("lng", [trace3], {title:"Longitutde change due to rudder (1 sec thruster)"})
   if (rudder >= Math.PI/2) {
     return;
   }
@@ -278,16 +278,54 @@ function runSim(rudder){
   var startPos;
   setTimeout(() => {console.log("getting stats"); startPos = getStats();}, 500);
   setTimeout(() => {console.log("starting thrusters"); document.getElementById("thruster").value = 1; publishThrust();}, 1000);
-  setTimeout(() => {console.log("stopping thrusters"); document.getElementById("thruster").value = 0; publishThrust();}, 1500);
+  setTimeout(() => {console.log("stopping thrusters"); document.getElementById("thruster").value = 0; publishThrust();}, 2000);
   setTimeout(() => {
     console.log("recording results"); 
     var delta = deltaStats(startPos, getStats());
     delta.rudder = rudder;
     results.push(delta); 
     console.log(results);
-    runSim(rudder+0.01)}, 20000);
+    rudderSim(rudder+0.01)}, 20000);
 }
-runSim(-1*Math.PI/2);
+function thrustSim(thrust){
+    var trace1 = {
+      x: results.map((x) => x.thrust),
+      y: results.map((x) => x.ori),
+      mode: "markers",
+      type: "scatter"
+    };
+    Plotly.newPlot("rudd", [trace1], {title:"Orientation change due to thrust (0 rudder)"});
+    var trace2 = {
+      x: results.map((x) => x.thrust),
+      y: results.map((x) => x.lat),
+      mode: "markers",
+      type: "scatter"
+    };
+    Plotly.newPlot("lat", [trace2], {title:"Latitude change due to rudder (0 rudder)"});
+    var trace3 = {
+      x: results.map((x) => x.thrust),
+      y: results.map((x) => x.lng),
+      mode: "markers",
+      type: "scatter"
+    }
+    Plotly.newPlot("lng", [trace3], {title:"Longitutde change due to rudder (0 rudder)"})
+  if (thrust >= 10000) {
+    return;
+  }
+  document.getElementById("rudder").value = -0.01; publishRudder();
+  var startPos;
+  setTimeout(() => {console.log("getting stats"); startPos = getStats();}, 500);
+  setTimeout(() => {console.log("starting thrusters"); document.getElementById("thruster").value = 1; publishThrust();}, 1000);
+  setTimeout(() => {console.log("stopping thrusters"); document.getElementById("thruster").value = 0; publishThrust();}, 1000+thrust);
+  setTimeout(() => {
+    console.log("recording results"); 
+    var delta = deltaStats(startPos, getStats());
+    delta.thrust = thrust;
+    results.push(delta); 
+    thrustSim(thrust+1000)}, 20000);
+}
+thrustSim(1000);
+//rudderSim(-0.2);
 
 </script>
 </body>
