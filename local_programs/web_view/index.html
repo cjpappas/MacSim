@@ -13,8 +13,6 @@
 
   <!-- JS/CSS -->
   <script src="js/main.js"></script>
-  <link rel="stylesheet" href="css/normalize.css">
-  <link rel="stylesheet" href="css/skeleton.css">
   <link rel="stylesheet" href="css/custom.css" >
 
 </head>
@@ -76,12 +74,52 @@
       </div>
     </div>
     <div id="editor-con">
-      <pre id="editor">// code goes here</pre>
+      <pre id="editor">/*
+  This funciton will be run in a 1 second loop to move the boat.
+  @param currentPos: { lat: float, lng: float } - The current position of the boat
+  @param goalPos: { lat: float, lng: float} - The goal position
+  @param currentVel: { x: float, y: float, z: float } - The boats current x and y velocity
+  @param direction: float - The boats current heading (z-rotation)
+  @param wind: { dir: float, speed: float } - Current direction and speed of wind
+  @param err: { cur: float, mean: float } - Current error of boat from goal
+*/
+function move(currentPos, goalPos, currentVel, direction, wind, err){
+
+}
+
+// Don't touch
+setInterval(() => {
+    var vel = { 
+        x: parseFloat(document.getElementById("gps_vel_x")),
+        y: parseFloat(document.getElementById("gps_vel_y")),
+        z: parseFloat(document.getElementById("imu_vel_z"))
+    };
+    var wind = {
+        dir: parseFloat(document.getElementById("wind_direction")),
+        speed: parseFloat(document.getElementById("wind_speed"))
+    };
+    var err = {
+        cur: parseFloat(document.getElementById("pose_error")),
+        mean: parseFloat(document.getElementById("pose_error_mean"))
+    };
+    move(marker.getPosition(),
+         goal.getPosition(),
+         vel,
+         parseFloat(document.getElementById("imu_direction")), 
+         wind,
+         err);
+}, 1000);</pre>
+        <button id="run">Run</button>
+        <button id="stop">Stop</button>
         <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
         <script>
           var editor = ace.edit("editor");
           editor.setTheme("ace/theme/twilight");
           editor.session.setMode("ace/mode/javascript");
+          document.getElementById("run").addEventListener('click', () => {
+            eval(editor.getValue());
+          });
+          document.getElementById("stop").addEventListener('click', () => run = false);
         </script>
     </div>
 </body>

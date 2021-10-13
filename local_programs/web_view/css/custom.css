@@ -26,8 +26,13 @@ body {
 #editor-con {
     align-items: flex-start;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     width: 100%;
+}
+
+#editor {
+    align-self: flex-start;
 }
 
 #map {
