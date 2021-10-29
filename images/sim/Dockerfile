@@ -24,8 +24,8 @@ RUN mkdir /home/developer/html
 ADD html /home/developer/html
 
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
-CMD source ~/vrx_ws/devel/setup.bash \
+CMD source ~/vrx_ws/devel/setup.bash && \
 #  && export ROS_MASTER_URI=http://master:11311 \
- && while true; do roslaunch vrx_gazebo station_keeping.launch gui:=false; done \
- & roslaunch rosbridge_server rosbridge_websocket.launch \
- & python3 -m http.server 80
+ while true; do roslaunch vrx_gazebo station_keeping.launch gui:=false; done & \
+ roslaunch rosbridge_server rosbridge_websocket.launch & \
+ python3 -m http.server -d /home/developer/html 80
