@@ -23,4 +23,4 @@ RUN cd ~/vrx_ws/ \
 CMD source ~/vrx_ws/devel/setup.bash \
 #  && export ROS_MASTER_URI=http://master:11311 \
  && while true; do roslaunch vrx_gazebo station_keeping.launch gui:=false; done \
- & roslaunch rosbridge_server rosbridge_websocket.launch
+ & source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch
