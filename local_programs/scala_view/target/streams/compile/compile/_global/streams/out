@@ -1,4 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m/Users/cameronpappas/code/ros-demo/local_programs/scala_view/src/main/scala/ThrusterAllocation.scala:9:42: not found: type matrix[0m
-[0m[[0m[31merror[0m] [0m[0m  def compute_thrust(n: Nat)(m: Nat)(nd: matrix[Nat, n, m]): Nat = 1[0m
-[0m[[0m[31merror[0m] [0m[0m                                         ^[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m

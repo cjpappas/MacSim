@@ -5,6 +5,8 @@
 **/local_programs/scala_view/.bloop
 **/local_programs/scala_view/.gradle
 **/local_programs/project
+**/node_modules
+**/package-lock.json
 
 # Coq build files
 **/*.aux
