@@ -5,9 +5,9 @@ global.WebSocket = require("ws"); // Because StackOverflow told me too
 let connection;
 let data = {
     current: { direction: 0, lat: 0, lng: 0, velocity: { x: 0, y: 0, z: 0 } },    
-    goal: undefined,
+    goal: undefined, // { lat, lng, error, mean_error }
     task: "",
-    waypoints: undefined,
+    waypoints: undefined, // [ { waypoint }]
     wind: { direction: 0, speed: 0 }
 };
 
