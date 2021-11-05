@@ -68,3 +68,6 @@ We are currently using [Dune](https://dune.build/) for building OCaml projects. 
 dune build exe ThrusterAllocation
 ./_build/default/ThrusterAllocation.exe
 ```
+# Troubleshooting
+
+If your docker build fails, try increasing the memory and the swap file available to docker (docker desktop > preferences)
