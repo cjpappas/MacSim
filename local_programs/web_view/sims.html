@@ -30,6 +30,14 @@
 
 <div id="map" class="vis">
     <script>
+      function icon(rotation){
+      return {path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
+                 fillOpacity: 1,
+                 fillColor: "#FFFFFF",
+                 scale:0.5, 
+                 rotation:(rotation/(Math.PI))*-180
+                }
+      }
       var map;
       var marker;
       var goal;
@@ -38,10 +46,14 @@
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: -33.722, lng: 150.67398},
           zoom: 18,
+          disableDefaultUI: true,
+          scaleControl: true,
+          zoomControl: true,
           mapTypeId: "satellite",
         });
         marker = new google.maps.Marker({
           position: {lat: -33.722, lng:150.67398},
+          icon: icon(0),
           map,
           title: "craft",
         });
@@ -101,6 +113,7 @@ sinks["/vrx/station_keeping/goal"] = (msg) => {
     ctx.moveTo(50,50);
     ctx.lineTo(50+Math.cos(eu.z)*45, 50-Math.sin(eu.z)*45);
     ctx.stroke();
+    marker.setIcon(icon(eu.z))
   }
   </script>
 
@@ -324,7 +337,7 @@ function thrustSim(thrust){
     results.push(delta); 
     thrustSim(thrust+1000)}, 20000);
 }
-thrustSim(1000);
+//thrustSim(1000);
 //rudderSim(-0.2);
 
 </script>

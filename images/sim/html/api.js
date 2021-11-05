@@ -9,9 +9,11 @@ master.subscribe(
   err => console.log("ERROR: " + err),
   () => console.log("COMPLETE")
 );
-for(key in sinks){
-  master.next({op: "subscribe", topic: key})
-};
+
+function subscribe(topic, action) {
+  sinks[topic] = action;
+  master.next({op: "subscribe", topic: topic})
+}
 
 function toDegs(degrees){
   return (degrees/Math.PI)*180;
