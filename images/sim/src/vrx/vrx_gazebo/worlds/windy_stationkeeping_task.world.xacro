@@ -10,7 +10,7 @@
     <!--wind for the wamv-->
     <xacro:include filename="$(find vrx_gazebo)/worlds/xacros/usv_wind_plugin.xacro"/>
     <xacro:usv_wind_gazebo
-    	direction="270"
+    	direction="90"
     	mean_vel="0"
     	var_gain="1"
     	var_time="1">

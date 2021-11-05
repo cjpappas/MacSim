@@ -2,46 +2,54 @@ const three = require("three");
 const { webSocket } = require("rxjs/webSocket");
 global.WebSocket = require("ws"); // Because StackOverflow told me too
 
+/*
+  - Used for station-keeping algorithm.
+  - Default thruster config loaded is T: https://github.com/osrf/vrx/wiki/tutorials-PropulsionConfiguration
+  - Headings stored as degrees clockwise from true north
+*/
+
+const MS_TO_KNOTS = 1.94384;
+
 let connection;
 let data = {
-    current: { direction: 0, lat: 0, lng: 0, velocity: { x: 0, y: 0, z: 0 } },    
-    goal: undefined, // { lat, lng, error, mean_error }
-    task: "",
-    waypoints: undefined, // [ { waypoint }]
-    wind: { direction: 0, speed: 0 }
+    cur_pos: { heading: 0, lat: 0, lng: 0 },    
+    gps_vel: { x: 0, y: 0 },
+    goal_pos: undefined,
+    wind: { heading: 0, speed: 0 }
 };
 
 const topics = {
     "/vrx/debug/wind/direction": (msg) => {
-        data.wind.direction = msg.msg.data.toFixed(6);
+        // Not sure how this comes in (assume degrees) - we want to store in degrees from true north clockwise
+        data.wind.heading = msg.msg.data;
     },
     "/vrx/debug/wind/speed": (msg) => {
-        data.wind.speed = msg.msg.data.toFixed(6);
+        // Not sure how this comes in - we want to store in knots
+        data.wind.speed = msg.msg.data;
     },
     "/vrx/station_keeping/goal": (msg) => {
-        data.goal.lat = msg.msg.pose.position.latitude;
-        data.goal.lng = msg.msg.pose.position.longitude;
-    },
-    "/vrx/station_keeping/mean_pose_error": (msg) => {
-        data.goal.mean_error = msg.msg.data.toFixed(6);
-    },
-    "/vrx/station_keeping/pose_error": (msg) => {
-        data.goal.error = msg.msg.data.toFixed(6);
-    },
-    "/vrx/task/info": (msg) => {
-        data.task = msg.msg.name;
-    },
-    "/vrx/wayfinding/waypoints": (msg) => {
-        // FIXME
-        data.waypoints = msg.msg.data;
+        var eu = new three.Euler();
+        var ex = new three.Quaternion(
+            msg.msg.pose.orientation.x, 
+            msg.msg.pose.orientation.y, 
+            msg.msg.pose.orientation.z, 
+            msg.msg.pose.orientation.w
+        );
+        eu.setFromQuaternion(ex);
+        data.goal_pos = {
+            lat: msg.msg.pose.position.latitude,
+            lng: msg.msg.pose.position.longitude,
+            heading: eu.z
+        };
     },
     "/wamv/sensors/gps/gps/fix": (msg) => {
-        data.current.lat = msg.msg.latitude;
-        data.current.lng = msg.msg.longitude;
+        data.cur_pos.lat = msg.msg.latitude;
+        data.cur_pos.lng = msg.msg.longitude;
     },
     "/wamv/sensors/gps/gps/fix_velocity": (msg) => {
-        data.current.velocity.x = msg.msg.vector.x.toFixed(6),
-        data.current.velocity.y = msg.msg.vector.y.toFixed(6)
+        // Not sure how this comes in (assumption m/s) - http://wiki.ros.org/hector_gazebo_plugins - 1.3 GazeboRosGPS
+        data.gps_vel.x = msg.msg.vector.x * MS_TO_KNOTS, // North
+        data.gps_vel.y = msg.msg.vector.y * MS_TO_KNOTS  // West
     },
     "/wamv/sensors/imu/imu/data": (msg) => {
         var eu = new three.Euler();
@@ -52,14 +60,12 @@ const topics = {
             msg.msg.orientation.w
         );
         eu.setFromQuaternion(ex);
-        data.current.direction = (eu.z).toFixed(6);
-        data.current.velocity.z = msg.msg.angular_velocity.x.toFixed(6);
+        data.cur_pos.heading = eu.z;
     }
 };
 
 const init = (url) => {
     connection = new webSocket(url);
-    // Subscribe
     connection.subscribe(
         (msg) => topics[msg.topic](msg),
         (err) => console.log("Error: " + err),
@@ -70,13 +76,18 @@ const init = (url) => {
         topic
     }));
     return {
-        execute,
         getPosition,
-        getSpeed,
         getGoalPosition,
-        getTask,
-        getWaypoints,
+        getGPSVelocity,
         getWindInfo,
+        imm: {
+            setLeftThrusterAngle,
+            setRightThrusterAngle,
+            setLateralThrusterAngle,
+            setLeftThrusterPower,
+            setRightThrusterPower,
+            setLateralThrusterPower
+        },
         moveForward,
         moveBackwards,
         rotateLeft,
@@ -86,40 +97,49 @@ const init = (url) => {
 }
 
 // Low-level api
-const setLeftThrusterAngle = (val) =>
+// Thruster angle value is expected to be specified in radians - max angles set in configuration file
+// i.e. 90 degrees = pi/2 radians
+const setLeftThrusterAngle = (degrees) =>
     connection.next({ 
         op: "publish",
         topic: "/wamv/thrusters/left_thrust_angle",
-        msg: { data: val }
+        msg: { data: (degrees * Math.PI / 180) }
     });
-const setRightThrusterAngle = (val) =>
+
+const setRightThrusterAngle = (degrees) =>
     connection.next({ 
         op: "publish",
         topic: "/wamv/thrusters/right_thrust_angle",
-        msg: { data: val }
+        msg: { data: (degrees * Math.PI / 180) }
     });
-const setLeftThrusterPower = (val) =>
+
+const setLateralThrusterAngle = (degrees) =>
+    connection.next({
+        op: "publish",
+        topic: "/wmav/thrusters/lateral_thrust_angle",
+        msg: { data: (degrees * Math.PI / 180) }
+    });
+
+const setLeftThrusterPower = (strength) =>
     connection.next({ 
         op: "publish",
         topic: "/wamv/thrusters/left_thrust_cmd",
-        msg: { data: val }
+        msg: { data: strength }
     });
-const setRightThrusterPower = (val) =>
+
+const setRightThrusterPower = (strength) =>
     connection.next({ 
         op: "publish",
         topic: "/wamv/thrusters/right_thrust_cmd",
-        msg: { data: val }
+        msg: { data: strength }
     });
 
-// Exposed interface
-
-/**
- * Executes the given function once every interval. 
- * @param {function} func The function to execute. 
- * @param {int} interval The interval (in milli seconds) to execute the function.
- * @returns Whatever setInterval returns? 
- */
-const execute = (func, interval) => setInterval(func, interval);
+const setLateralThrusterPower = (strength) =>
+    connection.next({
+        op: "publish",
+        topic: "/wamv/thrusters/lateral_thrust_cmd",
+        msg: { data: strength }
+    })
 
 // Getters - so data can't be accessed directly
 /**
@@ -130,55 +150,20 @@ const execute = (func, interval) => setInterval(func, interval);
  *     lng: float - current longitude.
  * }
  */
-const getPosition = () => ({
-    dir: data.current.direction, 
-    lat: data.current.lat,
-    lng: data.current.lng
-});
-
-/**
- * Returns the boat's current velocity (speed) in each direction.
- * @returns {
- *     x: float - current x velocity (speed).
- *     y: float - current y velocity (speed).
- *     z: float - current z velocity (speed).
- * }
- */
-const getSpeed = () => ({
-    x: data.current.velocity.x,
-    y: data.current.velocity.y,
-    z: data.current.velocity.z
-});
+const getPosition = () => data.cur_pos;
 
 /**
  * STATION KEEPING SIMULATION ONLY
  * Returns the position of the current goal.
  * Returns undefined for other simulations.
  * @returns {
- *     err: float - current distance from goal.
  *     lat: float - latitude of the goal.
  *     lng: float - longitude of the goal.
  * } 
  */
-const getGoalPosition = () => ({
-    err: data.goal.error,
-    lat: data.goal.lat,
-    lng: data.goal.lng
-});
+const getGoalPosition = () => data.goal_pos;
 
-/**
- * Returns the task the simulation is running
- * @returns {string}
- */
-const getTask = () => data.task;
-
-/**
- * WAYFINDING SIMULATION ONLY
- * Returns an array of waypoints.
- * Returns undefined for other simulations.
- * @returns dno 
- */
-const getWaypoints = () => data.waypoints;
+const getGPSVelocity = () => data.gps_vel;
 
 /**
  * Returns information about the wind.
@@ -187,10 +172,7 @@ const getWaypoints = () => data.waypoints;
  *     spd: float - current speed of the wind.
  * } 
  */
-const getWindInfo = () => ({
-    dir: data.wind.direction,
-    spd: data.wind.speed
-});
+const getWindInfo = () => data.wind; 
 
 // Movement
 /**
@@ -198,54 +180,82 @@ const getWindInfo = () => ({
  * thrusters to a provided value or 1.  
  * @param {float} val 
  */
-const moveForward = (val = 1) => {
-    setLeftThrusterAngle(0);
-    setRightThrusterAngle(0);
-    setLeftThrusterPower(val);
-    setRightThrusterPower(val);
-}
+const moveForward = (strength = 1) => new Promise((resolve, reject) => {
+    try {
+        setLeftThrusterAngle(0);
+        setRightThrusterAngle(0);
+        setLeftThrusterPower(strength);
+        setRightThrusterPower(strength);
+        setTimeout(() => { 
+            console.log("Moved forward!");
+            resolve()
+        }, 1000); 
+    } catch (error) {
+        reject(error);
+    }
+})
 
 /**
  * Moves the boat backward, setting both the left and right
  * thrusters to a provided value or 1.  
  * @param {float} val 
  */
-const moveBackwards = (val = 1) => {
-    setLeftThrusterAngle(0);
-    setRightThrusterAngle(0);
-    setLeftThrusterPower(-val);
-    setRightThrusterPower(-val);
-}
+const moveBackwards = (strength = 1) => new Promise((resolve, reject) => {
+    try {
+        setLeftThrusterAngle(0);
+        setRightThrusterAngle(0);
+        setLeftThrusterPower(-strength);
+        setRightThrusterPower(-strength);
+        setTimeout(() => resolve(), 1000); 
+    } catch (error) {
+        reject(error);
+    }
+});
 
 /**
  * Rotates the boat left-wards (anti-clockwise).
  */
-const rotateLeft = () => {
-    setLeftThrusterAngle(-1); // outwards
-    setRightThrusterAngle(1); // inwards
-    setLeftThrusterPower(-1); // backwards
-    setRightThrusterPower(1); // forwards
-}
+const rotateLeft = (strength = 1) => new Promise((resolve, reject) => {
+    try {
+        setLeftThrusterAngle(-1); // outwards
+        setRightThrusterAngle(1); // inwards
+        setLeftThrusterPower(-strength); // backwards
+        setRightThrusterPower(strength); // forwards
+        setTimeout(() => resolve(), 1000); 
+    } catch (error) {
+        reject(error);
+    }
+});
 
 /**
  * Rotates the boat right-wards (clockwise).
  */
-const rotateRight = () => {
-    setLeftThrusterAngle(1); // inwards
-    setRightThrusterAngle(-1); // outwards
-    setLeftThrusterPower(1); // forwards
-    setRightThrusterPower(-1); // backwards
-}
+const rotateRight = (strength = 1) => new Promise((resolve, reject) => {
+    try {
+        setLeftThrusterAngle(1); // inwards
+        setRightThrusterAngle(-1); // outwards
+        setLeftThrusterPower(strength); // forwards
+        setRightThrusterPower(-strength); // backwards
+        setTimeout(() => resolve(), 1000); 
+    } catch (error) {
+        reject(error);
+    }
+});
 
 /**
  * Stops the boat by turnning off both thrusters.
  */
-const stop = () => {
-    setLeftThrusterAngle(0);
-    setRightThrusterAngle(0);
-    setLeftThrusterPower(0);
-    setRightThrusterPower(0);
-}
+const stop = () => new Promise((resolve, reject) => {
+    try {
+        setLeftThrusterAngle(0);
+        setRightThrusterAngle(0);
+        setLeftThrusterPower(0);
+        setRightThrusterPower(0);
+        setTimeout(() => resolve(), 1000); 
+    } catch (error) {
+        reject(error);
+    }
+});
 
 
 module.exports = { init };
