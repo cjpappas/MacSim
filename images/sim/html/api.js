@@ -16,6 +16,7 @@ let data = {
     cur_pos: { heading: 0, lat: 0, lng: 0 },    
     gps_vel: { x: 0, y: 0 },
     goal_pos: undefined,
+    task: { name: "", state: "", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
     wind: { heading: 0, speed: 0 }
 };
 
@@ -42,6 +43,19 @@ const topics = {
             lng: msg.msg.pose.position.longitude,
             heading: eu.z
         };
+    },
+    "/vrx/task/info": (msg) => {
+        // https://github.com/osrf/vrx/blob/master/vrx_gazebo/msg/Task.msg
+        data.task = {
+            name: msg.msg.name,
+            state: msg.msg.state,
+            ready_time: msg.msg.ready_time.secs,
+            running_time: msg.msg.running_time.secs,
+            elapsed_time: msg.msg.elapsed_time.secs,
+            remaining_time: msg.msg.remaining_time.secs,
+            timed_out: msg.msg.timed_out,
+            score: msg.msg.score
+        }  
     },
     "/wamv/sensors/gps/gps/fix": (msg) => {
         data.cur_pos.lat = msg.msg.latitude;
@@ -165,6 +179,8 @@ const getPosition = () => data.cur_pos;
 const getGoalPosition = () => data.goal_pos;
 
 const getGPSVelocity = () => data.gps_vel;
+
+const getTaskInfo = () => data.task;
 
 /**
  * Returns information about the wind.
