@@ -1,7 +1,12 @@
-// const THREE = require("three");
-// const { webSocket } = require("rxjs/webSocket");
-// global.WebSocket = require("ws"); // Because StackOverflow told me too
-const { webSocket } = rxjs.webSocket;
+const env = window === undefined ? "node" : "browser";
+const THREE = require("three");
+if(env === "node"){
+  const THREE = require("three");
+  const { webSocket } = require("rxjs/webSocket");
+  global.WebSocket = require("ws"); // Because StackOverflow told me too
+} else {
+  const { webSocket } = rxjs.webSocket;
+}
 
 /*
   - Used for station-keeping algorithm.
@@ -274,5 +279,6 @@ const stop = () => new Promise((resolve, reject) => {
     }
 });
 
-
-// module.exports = { init };
+if(env === "node"){
+  module.exports = { init };
+}
