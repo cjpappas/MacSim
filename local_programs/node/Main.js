@@ -1,4 +1,4 @@
-const { init } = require("./Api");
+const { init } = require("./api");
 
 // Returns a connection to the rosbridge server
 const ros = init("ws://172.17.0.2:9090");
