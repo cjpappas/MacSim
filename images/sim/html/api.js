@@ -1,11 +1,11 @@
 const env = window === undefined ? "node" : "browser";
-const THREE = require("three");
+let webSocket;
 if(env === "node"){
   const THREE = require("three");
-  const { webSocket } = require("rxjs/webSocket");
+  webSocket = require("rxjs/webSocket").webSocket;
   global.WebSocket = require("ws"); // Because StackOverflow told me too
 } else {
-  const { webSocket } = rxjs.webSocket;
+  webSocket = rxjs.webSocket.webSocket;
 }
 
 /*
@@ -99,6 +99,7 @@ const init = (url) => {
         getPosition,
         getGoalPosition,
         getGPSVelocity,
+        getTaskInfo,
         getWindInfo,
         imm: {
             setLeftThrusterAngle,
