@@ -88,8 +88,8 @@ const init = (url) => {
     connection = new webSocket(url);
     connection.subscribe(
         (msg) => topics[msg.topic](msg),
-        (err) => console.log("Error: " + err),
-        () => console.log("Closed")
+        (err) => console.log("Subscription error: " + err),
+        () => console.log("Websocket closed")
     );
     Object.keys(topics).forEach((topic) => connection.next({
         op: "subscribe",
