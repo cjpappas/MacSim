@@ -25,7 +25,7 @@ ADD html /home/developer/html
 
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
 CMD source ~/vrx_ws/devel/setup.bash && while true; do roslaunch vrx_gazebo station_keeping.launch gui:=false; done & \
-    source ~/vrx_ws/devel/setup.bash && rosbridge_server rosbridge_websocket.launch & \
+    source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch & \
     python3 -m http.server -d /home/developer/html 80
 
 ## Should be built with
