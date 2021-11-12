@@ -90,9 +90,6 @@
         goal.setPosition(craft.getGoalPosition());
         goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
       }, 500);
-      subscribe("/vrx/station_keeping/goal", (msg) => {
-        latlng = {lat: msg.msg.pose.position.latitude, lng: msg.msg.pose.position.longitude}
-      });
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
     async defer></script>
@@ -101,12 +98,10 @@
 <svg id="hud" width = 100% height=100%></svg>
 <div id="api"><a href="api.js">api.js</a></div>
 <div id="timer"></div>
-<script>
-  subscribe("/vrx/task/info", (msg) => {
-    document.getElementById("timer").innerHTML = msg.msg.remaining_time.secs;
-  });</script>
-
-
+  <script>
+    setInterval(() => {
+      document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
+    }, 500);
+  </script>
 </body>
-
 </html>

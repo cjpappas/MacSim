@@ -1,7 +1,13 @@
-// const THREE = require("three");
-// const { webSocket } = require("rxjs/webSocket");
-// global.WebSocket = require("ws"); // Because StackOverflow told me too
-const { webSocket } = rxjs.webSocket;
+let webSocket;
+let three
+if(typeof window === "undefined"){
+  three = require("three");
+  webSocket = require("rxjs/webSocket").webSocket;
+  global.WebSocket = require("ws"); // Because StackOverflow told me too
+} else {
+  three = THREE;
+  webSocket = rxjs.webSocket.webSocket;
+}
 
 /*
   - Used for station-keeping algorithm.
@@ -30,8 +36,8 @@ const topics = {
         data.wind.speed = msg.msg.data;
     },
     "/vrx/station_keeping/goal": (msg) => {
-        var eu = new THREE.Euler();
-        var ex = new THREE.Quaternion(
+        var eu = new three.Euler();
+        var ex = new three.Quaternion(
             msg.msg.pose.orientation.x, 
             msg.msg.pose.orientation.y, 
             msg.msg.pose.orientation.z, 
@@ -67,8 +73,8 @@ const topics = {
         data.gps_vel.y = msg.msg.vector.y * MS_TO_KNOTS  // West
     },
     "/wamv/sensors/imu/imu/data": (msg) => {
-        var eu = new THREE.Euler();
-        var ex = new THREE.Quaternion(
+        var eu = new three.Euler();
+        var ex = new three.Quaternion(
             msg.msg.orientation.x, 
             msg.msg.orientation.y, 
             msg.msg.orientation.z, 
@@ -83,8 +89,8 @@ const init = (url) => {
     connection = new webSocket(url);
     connection.subscribe(
         (msg) => topics[msg.topic](msg),
-        (err) => console.log("Error: " + err),
-        () => console.log("Closed")
+        (err) => console.log("Subscription error: " + err),
+        () => console.log("Websocket closed")
     );
     Object.keys(topics).forEach((topic) => connection.next({
         op: "subscribe",
@@ -94,6 +100,7 @@ const init = (url) => {
         getPosition,
         getGoalPosition,
         getGPSVelocity,
+        getTaskInfo,
         getWindInfo,
         imm: {
             setLeftThrusterAngle,
@@ -274,5 +281,6 @@ const stop = () => new Promise((resolve, reject) => {
     }
 });
 
-
-// module.exports = { init };
+if(typeof window === "undefined"){
+  module.exports = { init };
+}
