@@ -1,4 +1,4 @@
-# ROS Demonstration
+# MacSim
 
 This repository contains a docker image to run a [vrx gazebo simulation](https://github.com/osrf/vrx). This simulation uses [ROS](http://wiki.ros.org) for communication. In addition, we use the [Rosbridge suite]((http://wiki.ros.org/rosbridge_suite)) to allow for communication between non-ros clients such as the browser or a [node](https://nodejs.org/en/) applicaiton.
 
@@ -35,7 +35,7 @@ source ~/vrx_ws/devel/setup.bash
 
 # Connecting to the Simulation
 
-The container hosts a small webserver that allows you to connect to the simulation via a webpage. It is accessible as `http://localhost:11311/hud.html`. You can also connect to the simulation from other programs such as node.
+The container hosts a small webserver that allows you to connect to the simulation via a webpage. It is accessible as `http://localhost:11311/hud.html`. You can also connect to the simulation from other programs such as node. Detailed documentation on the api can be found on the repositories wiki [here](https://github.com/cjpappas/MacSim/wiki/api).
 
 # Troubleshooting
 
