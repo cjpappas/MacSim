@@ -1,73 +1,42 @@
 # ROS Demonstration
 
-This repository contains the docker images and code to run a demonstration of a [ROS](http://wiki.ros.org) container (representing a device without the ROS environment) talking to a ROScontainer (representing a ROS master). It utilises the [Rosbridge suite]((http://wiki.ros.org/rosbridge_suite)) to allow communication between ROS and non-ROS devices. 
+This repository contains a docker image to run a [vrx gazebo simulation](https://github.com/osrf/vrx). This simulation uses [ROS](http://wiki.ros.org) for communication. In addition, we use the [Rosbridge suite]((http://wiki.ros.org/rosbridge_suite)) to allow for communication between non-ros clients such as the browser or a [node](https://nodejs.org/en/) applicaiton.
 
 ## Requirements
 - [Docker](https://www.docker.com)
-- [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Running The Demo
-
-Docker compose should take care of the setup.
+## Running The Image
+To build image locally, clone this repository build the image in `images/base`:
 ```bash
-docker compose up -d
+git clone https://github.com/cjpappas/MacSim.git
+cd images/base
+docker build -t altmattr/simulation .
 ```
-OR
+Alternatively, you can pull the latest version from [Dockerhub](https://hub.docker.com/):
 ```bash
-docker-compose up -d
-```
-
-This will create:
-- A docker network, ros-network, which will act as the network both devices are connected to.
-- A ROS master container, called `master`, which will be running the rosbridge suite.
-- A non-ROS container, called `logic_python`, which is running python with the [roslibpy](https://github.com/gramaziokohler/roslibpy) library.
-- A headless gazebo simulation (a ROS container) running the `vrx` scenario.
-
-All images start up the required servers and begin communicating.  The `ROS_MASTER_URI` is set in the gazebo node so that it uses the master node in the `master` container.
-
-You can connect to the master node to watch what is happening on the various topics with
-
-```bash
-docker exec -it master /bin/bash
-```
-You still need to introduce all the ros paths etc in this shell, you can do that be prefacing any ros commands with `/ros_entrypoint.sh <command>` of by sourcin
-g `>source /opt/ros/noetic/setup.bash`
-
-### For example
-You can watch the location of the wam-v in this scenario with
-
-`/ros_entrypoint.sh rostopic echo /wamv/sensors/gps/gps/fix`
-
-## Clean-up
-
-To stop the demonstration and clean-up the containers and network.
-```bash
-docker-compose down
+docker pull altmattr/simulation
 ```
 
-# Running a simultion to connect to some other hardware/software
-
-The `master` container binds all necessary ports to localhost when you run `docker compose up`, so you can talk to ROS directly with `localhost:11311` and to rosbridge on `localhost:9090`.  It is not yet tested, but I expect other ROS nodes on the network can set their `ROS_MASTER_URI` as necessary to connect to the `master` node running in the docker composition.
-
-# Coq program extraction to OCaml
-
-To extract programs from the coq files run:
+To run the image:
 ```bash
-coqc -quiet local_programs/coq_proofs/ThrusterAllocation.v
+docker run -itd \
+    --name sim \
+    -p 9090:9090 \
+    -p 80:80 \
+    altmattr/simulation
 ```
-You will then need to drag the `ThursterAllocation.ml` file into the `ocaml_coq_extraction` directory located in `local_programs`
 
-# Compiling and running OCaml programs
+You can connect to the image and source ROS with:
+```bash
+docker exec -it sim /bin/bash
+source /opt/ros/noetic/setup.bash
+source ~/vrx_ws/devel/setup.bash
+```
 
-To run the OCaml program, first connect to the OCaml container
-```bash
-docker exec -it logic_ocaml /bin/bash
-```
-We are currently using [Dune](https://dune.build/) for building OCaml projects. To build and run the project:
-```bash
-dune build exe ThrusterAllocation
-./_build/default/ThrusterAllocation.exe
-```
+# Connecting to the Simulation
+
+The container hosts a small webserver that allows you to connect to the simulation via a webpage. It is accessible as `http://localhost:11311/hud.html`. You can also connect to the simulation from other programs such as node.
+
 # Troubleshooting
 
 If your docker build fails, try increasing the memory and the swap file available to docker (docker desktop > preferences)
