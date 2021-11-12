@@ -1,3 +1,4 @@
+// Documentation - https://github.com/cjpappas/MacSim/wiki/api
 let webSocket;
 let three
 if(typeof window === "undefined"){
@@ -8,12 +9,6 @@ if(typeof window === "undefined"){
   three = THREE;
   webSocket = rxjs.webSocket.webSocket;
 }
-
-/*
-  - Used for station-keeping algorithm.
-  - Default thruster config loaded is T: https://github.com/osrf/vrx/wiki/tutorials-PropulsionConfiguration
-  - Headings stored as degrees clockwise from true north
-*/
 
 const MS_TO_KNOTS = 1.94384;
 
@@ -28,11 +23,9 @@ let data = {
 
 const topics = {
     "/vrx/debug/wind/direction": (msg) => {
-        // Not sure how this comes in (assume degrees) - we want to store in degrees from true north clockwise
         data.wind.heading = msg.msg.data;
     },
     "/vrx/debug/wind/speed": (msg) => {
-        // Not sure how this comes in - we want to store in knots
         data.wind.speed = msg.msg.data;
     },
     "/vrx/station_keeping/goal": (msg) => {
@@ -51,7 +44,6 @@ const topics = {
         };
     },
     "/vrx/task/info": (msg) => {
-        // https://github.com/osrf/vrx/blob/master/vrx_gazebo/msg/Task.msg
         data.task = {
             name: msg.msg.name,
             state: msg.msg.state,
@@ -68,9 +60,8 @@ const topics = {
         data.cur_pos.lng = msg.msg.longitude;
     },
     "/wamv/sensors/gps/gps/fix_velocity": (msg) => {
-        // Not sure how this comes in (assumption m/s) - http://wiki.ros.org/hector_gazebo_plugins - 1.3 GazeboRosGPS
-        data.gps_vel.x = msg.msg.vector.x * MS_TO_KNOTS, // North
-        data.gps_vel.y = msg.msg.vector.y * MS_TO_KNOTS  // West
+        data.gps_vel.x = msg.msg.vector.x * MS_TO_KNOTS, 
+        data.gps_vel.y = msg.msg.vector.y * MS_TO_KNOTS 
     },
     "/wamv/sensors/imu/imu/data": (msg) => {
         var eu = new three.Euler();
@@ -85,6 +76,11 @@ const topics = {
     }
 };
 
+/**
+ * Create + initalise connection ans subscribe to simualtion topics.
+ * @param {string} url - The url of the simualtion.
+ * @returns {Object} Contains functions to interact with simulation.
+ */
 const init = (url) => {
     connection = new webSocket(url);
     connection.subscribe(
@@ -112,15 +108,18 @@ const init = (url) => {
         },
         moveForward,
         moveBackwards,
-        rotateLeft,
-        rotateRight,
+        rotateAnticlockwise,
+        rotateClockwise,
         stop
     }
 }
 
-// Low-level api
-// Thruster angle value is expected to be specified in radians - max angles set in configuration file
-// i.e. 90 degrees = pi/2 radians
+// Immediate api
+
+/**
+ * Sets the angle of the left thruster.
+ * @param {float} degrees - Number of degrees to turn the craft.
+ */
 const setLeftThrusterAngle = (degrees) =>
     connection.next({ 
         op: "publish",
@@ -128,6 +127,10 @@ const setLeftThrusterAngle = (degrees) =>
         msg: { data: (degrees * Math.PI / 180) }
     });
 
+/**
+ * Sets the angle of the right thruster.
+ * @param {float} degrees - Number of degrees to turn the craft.
+ */
 const setRightThrusterAngle = (degrees) =>
     connection.next({ 
         op: "publish",
@@ -135,6 +138,10 @@ const setRightThrusterAngle = (degrees) =>
         msg: { data: (degrees * Math.PI / 180) }
     });
 
+/**
+ * Sets the angle of the lateral thruster.
+ * @param {float} degrees - Number of degrees to turn the craft.
+ */
 const setLateralThrusterAngle = (degrees) =>
     connection.next({
         op: "publish",
@@ -142,6 +149,10 @@ const setLateralThrusterAngle = (degrees) =>
         msg: { data: (degrees * Math.PI / 180) }
     });
 
+/**
+ * Sets the power of the left thruster.
+ * @param {float} strength - Thruster strength.
+ */
 const setLeftThrusterPower = (strength) =>
     connection.next({ 
         op: "publish",
@@ -149,6 +160,10 @@ const setLeftThrusterPower = (strength) =>
         msg: { data: strength }
     });
 
+/**
+ * Sets the power of the right thruster.
+ * @param {float} strength - Thruster strength.
+ */
 const setRightThrusterPower = (strength) =>
     connection.next({ 
         op: "publish",
@@ -156,6 +171,10 @@ const setRightThrusterPower = (strength) =>
         msg: { data: strength }
     });
 
+/**
+ * Sets the power of the lateral thruster.
+ * @param {float} strength - Thruster strength.
+ */    
 const setLateralThrusterPower = (strength) =>
     connection.next({
         op: "publish",
@@ -164,12 +183,13 @@ const setLateralThrusterPower = (strength) =>
     })
 
 // Getters - so data can't be accessed directly
+
 /**
  * Returns the boat's current position.
  * @returns {
- *     dir: float - current heading in radians.
- *     lat: float - current latitude.
- *     lng: float - current longitude.
+ *     heading: float - current heading in radians,
+ *     lat: float - current latitude,
+ *     lng: float - current longitude
  * }
  */
 const getPosition = () => data.cur_pos;
@@ -179,30 +199,53 @@ const getPosition = () => data.cur_pos;
  * Returns the position of the current goal.
  * Returns undefined for other simulations.
  * @returns {
- *     lat: float - latitude of the goal.
- *     lng: float - longitude of the goal.
+ *     lat: float - latitude of the goal,
+ *     lng: float - longitude of the goal,
+ *     heading: float - heading of the goal
  * } 
  */
 const getGoalPosition = () => data.goal_pos;
 
+/**
+ * Returns the esimated velocity of the craft.
+ * @returns {
+ *     x: float - (m/s) in a north/south direction,
+ *     y: float - (m/s) in a west/east direction
+ * }
+ */
 const getGPSVelocity = () => data.gps_vel;
 
+/**
+ * Return various pieces of informatino about the current task running in the simulation.
+ * @returns {
+ *     task: string - task name,
+ *     state: string - current state of the task (initial, ready, running, finished),
+ *     ready_time: int - simulation time in seconds when state will transition to ready,
+ *     running_time: int - simulation time in seconds when state will transition to running,
+ *     elapsed_time: int - seconds since the simulation started (current time - start time),
+ *     remaining_time: int - seconds remaining until simulation times out,
+ *     timed_out: boolean - whether the simulation has timed out,
+ *     score: float - current score from the simulation
+ * }
+ */
 const getTaskInfo = () => data.task;
 
 /**
  * Returns information about the wind.
  * @returns {
- *     dir: float - current direction of the wind.
- *     spd: float - current speed of the wind.
+ *     heading: float - current direction of the wind,
+ *     speed: float - current speed of the wind
  * } 
  */
 const getWindInfo = () => data.wind; 
 
-// Movement
+// High-level api (promise-based functions)
+
 /**
  * Moves the boat forward, setting both the left and right
  * thrusters to a provided value or 1.  
- * @param {float} val 
+ * @param {float} strength - Strength of the thrusters.
+ * @returns {Promise}
  */
 const moveForward = (strength = 1) => new Promise((resolve, reject) => {
     try {
@@ -220,9 +263,10 @@ const moveForward = (strength = 1) => new Promise((resolve, reject) => {
 })
 
 /**
- * Moves the boat backward, setting both the left and right
+ * Moves the boat backwards, setting both the left and right
  * thrusters to a provided value or 1.  
- * @param {float} val 
+ * @param {float} strength - Strength of the thrusters.
+ * @returns {Promise}
  */
 const moveBackwards = (strength = 1) => new Promise((resolve, reject) => {
     try {
@@ -237,9 +281,11 @@ const moveBackwards = (strength = 1) => new Promise((resolve, reject) => {
 });
 
 /**
- * Rotates the boat left-wards (anti-clockwise).
+ * Rotates the boat anticlockwise.  
+ * @param {float} strength - Strength of the thrusters.
+ * @returns {Promise}
  */
-const rotateLeft = (strength = 1) => new Promise((resolve, reject) => {
+const rotateAnticlockwise = (strength = 1) => new Promise((resolve, reject) => {
     try {
         setLeftThrusterAngle(-1); // outwards
         setRightThrusterAngle(1); // inwards
@@ -252,9 +298,11 @@ const rotateLeft = (strength = 1) => new Promise((resolve, reject) => {
 });
 
 /**
- * Rotates the boat right-wards (clockwise).
+ * Rotates the boat clockwise.  
+ * @param {float} strength - Strength of the thrusters.
+ * @returns {Promise}
  */
-const rotateRight = (strength = 1) => new Promise((resolve, reject) => {
+const rotateClockwise = (strength = 1) => new Promise((resolve, reject) => {
     try {
         setLeftThrusterAngle(1); // inwards
         setRightThrusterAngle(-1); // outwards
@@ -267,7 +315,8 @@ const rotateRight = (strength = 1) => new Promise((resolve, reject) => {
 });
 
 /**
- * Stops the boat by turnning off both thrusters.
+ * Stops the boat by turning off thrusters and resetting thruster angles.  
+ * @returns {Promise}
  */
 const stop = () => new Promise((resolve, reject) => {
     try {
