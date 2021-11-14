@@ -85,7 +85,6 @@
       }
       setInterval(() => {
         marker.setPosition(craft.getPosition());
-        console.log(craft.getPosition().heading);
         marker.setIcon(icon(craft.getPosition().heading, "#FFFFFF", 1));
         goal.setPosition(craft.getGoalPosition());
         goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
