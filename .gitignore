@@ -1,24 +1,9 @@
 # IDE settings
 **/.metals
 **/.vscode
-**/local_programs/scala_view/.metals
-**/local_programs/scala_view/.bloop
-**/local_programs/scala_view/.gradle
-**/local_programs/project
-**/node_modules
-**/package-lock.json
-
-# Coq build files
-**/*.aux
-**/*.glob
-**/*.vo
-**/*.vok
-**/*.vos
-
-# OCaml build files
-**/_build
-
-
+**/local_programs/scala_ws/.metals
+**/local_programs/scala_ws/.bloop
+**/local_programs/scala_ws/.gradle
 **/.DS_Store
-local_programs/scala_view/project/
-local_programs/scala_view/target/
+**/local_programs/scala_ws/project/
+**/local_programs/scala_ws/target/
