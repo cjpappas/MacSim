@@ -4,8 +4,10 @@ FROM npslearninglab/watery_robots:noetic_current
 SHELL ["/bin/bash", "-c"]
 
 # useful for debugging
-RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge-suite
+RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge-suite pip
 
+# Install python deps. for server
+RUN pip install Flask
 
 # build the vrx ROS
 RUN mkdir -p ~/vrx_ws/src
