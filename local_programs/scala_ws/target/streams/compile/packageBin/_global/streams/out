@@ -1,0 +1,23 @@
+[0m[[0m[0mdebug[0m] [0m[0mPackaging /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/eps_2.12-0.1.0-SNAPSHOT.jar ...[0m
+[0m[[0m[0mdebug[0m] [0m[0mInput file mappings:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	App$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/App$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	Craft$Loc$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/Craft$Loc$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	ThrusterAllocation$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/ThrusterAllocation$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	Craft.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/Craft.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	Craft$Loc.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/Craft$Loc.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	App.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/App.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	rosbridge[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/rosbridge[0m
+[0m[[0m[0mdebug[0m] [0m[0m	rosbridge/subscribe$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/rosbridge/subscribe$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	rosbridge/subscribe.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/rosbridge/subscribe.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	ThrusterAllocation.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /Users/cameronpappas/code/ros-demo/local_programs/scala_view/target/scala-2.12/classes/ThrusterAllocation.class[0m
+[0m[[0m[0mdebug[0m] [0m[0mDone packaging.[0m
