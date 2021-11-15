@@ -53,6 +53,14 @@
       -webkit-text-stroke-width: 0.5px;
       -webkit-text-stroke-color: black;
     }
+    #stop {
+      top: 10px;
+      left: 250px;
+      font-size: 25px;
+      -webkit-text-fill-color: white;
+      -webkit-text-stroke-width: 0.5px;
+      -webkit-text-stroke-color: black;
+    }
     a{
       text-decoration: none;
     }
@@ -127,9 +135,18 @@
   <button id="sim_start">Start</button>
   <script>
     document.getElementById("sim_start").onclick = () => {
-      start("station_keeping");
+      start_sim("station_keeping");
       setTimeout(() => window.location.reload(), 5000);
     }
+  </script>
+</div>
+<div id="stop">
+  <button id="sim_stop">Stop</button>
+  <script>
+    document.getElementById("sim_stop", onclick = () => {
+      stop_sim();
+      setTimeout(() => window.location.reload(), 5000);
+    });
   </script>
 </div>
 <div id="timer"></div>

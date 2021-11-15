@@ -1,6 +1,5 @@
 from flask import Flask, redirect, request, send_from_directory, url_for
 import subprocess
-import time
 
 app = Flask(__name__, static_url_path="")
 sims = { "station_keeping": "station_keeping.launch" }
@@ -22,7 +21,12 @@ def start():
     sim = request.json["sim"]
     if sim in sims.keys():
         subprocess.run(["source ~/vrx_ws/devel/setup.bash && roslaunch vrx_gazebo %s gui:=false"%(sims[sim])],
-                        executable="/bin/bash", shell=True)
+                                 executable="/bin/bash", shell=True)
         return {"status": "Simulation started."}, 200
     return {"status": "Simulation type not found"}, 404
-    
+
+@app.route("/api/stop_sim", methods=["POST"])
+def stop():
+    subprocess.run(["source ~/vrx_ws/devel/setup.bash && rosnode kill gazebo && killall -9 gzserver"],
+                    executable="/bin/bash", shell=True)
+    return {}, 200

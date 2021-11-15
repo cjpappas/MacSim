@@ -332,7 +332,7 @@ const stop = () => new Promise((resolve, reject) => {
 
 const sims = ["station_keeping"];
 
-const start = (type) => {
+const start_sim = (type) => {
     if(sims.includes(type)){
         axios.post("/api/start_sim", { sim: type })
           .then(() => sim_started = true)
@@ -340,6 +340,8 @@ const start = (type) => {
     }
 }
 
+const stop_sim = () => axios.post("/api/stop_sim", {});
+
 if(typeof window === "undefined"){
-  module.exports = { init, start };
+  module.exports = { init, start_sim, stop_sim };
 }
