@@ -35,7 +35,7 @@ source ~/vrx_ws/devel/setup.bash
 
 # Connecting to the Simulation
 
-The container hosts a small webserver that allows you to connect to the simulation via a webpage. You can open the `image/base/html/hud/html` in the browser and it will provide a visula overview of the simualtion. You can also connect to the simulation from other programs such as node. Detailed documentation on the api can be found on the repositories wiki [here](https://github.com/cjpappas/MacSim/wiki/api).
+The container hosts a small webserver that allows you to connect to the simulation via a webpage. To access the simulation you can navigate to `http://localhost` or you can open the `image/base/html/hud/html` in the browser and it will provide a visula overview of the simualtion. You can also connect to the simulation from other programs such as node. Detailed documentation on the api can be found on the repositories wiki [here](https://github.com/cjpappas/MacSim/wiki/api).
 
 # Troubleshooting
 
