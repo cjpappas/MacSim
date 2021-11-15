@@ -13,7 +13,6 @@ if(typeof window === "undefined"){
 }
 
 const MS_TO_KNOTS = 1.94384;
-let sim_started = false;
 
 let connection;
 let data = {
@@ -332,14 +331,20 @@ const stop = () => new Promise((resolve, reject) => {
 
 const sims = ["station_keeping"];
 
+/**
+ * Sends a request to the server to start the requested simulation.
+ * @param {string} type - The type of simulation to start.
+ */
 const start_sim = (type) => {
     if(sims.includes(type)){
         axios.post("/api/start_sim", { sim: type })
-          .then(() => sim_started = true)
           .catch((error) => console.log(error));
     }
 }
 
+/**
+ * Sends a request to the server to stop the current running simulation.
+ */
 const stop_sim = () => axios.post("/api/stop_sim", {});
 
 if(typeof window === "undefined"){
