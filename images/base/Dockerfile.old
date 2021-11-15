@@ -26,7 +26,8 @@ RUN mkdir /home/developer/html
 ADD html /home/developer/html
 
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
-CMD source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch & \
+CMD source ~/vrx_ws/devel/setup.bash && while true; do roslaunch vrx_gazebo station_keeping.launch gui:=false; done & \
+    source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch & \
     export FLASK_APP=/home/developer/html/server.py && python3 -m flask run --host=0.0.0.0 --port=80 
 
 ## Should be built with

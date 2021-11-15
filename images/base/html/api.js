@@ -1,7 +1,9 @@
 // Documentation - https://github.com/cjpappas/MacSim/wiki/api
+// let axios
+let three;
 let webSocket;
-let three
 if(typeof window === "undefined"){
+  axios = require("axios");
   three = require("three");
   webSocket = require("rxjs/webSocket").webSocket;
   global.WebSocket = require("ws"); // Because StackOverflow told me too
@@ -11,13 +13,14 @@ if(typeof window === "undefined"){
 }
 
 const MS_TO_KNOTS = 1.94384;
+let sim_started = false;
 
 let connection;
 let data = {
     cur_pos: { heading: 0, lat: 0, lng: 0 },    
     gps_vel: { x: 0, y: 0 },
-    goal_pos: undefined,
-    task: { name: "", state: "", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
+    goal_pos: { lat: 0, lng: 0, heading: 0 },
+    task: { name: "None", state: "Not started", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
     wind: { heading: 0, speed: 0 }
 };
 
@@ -87,7 +90,7 @@ const init = (url) => {
         (msg) => topics[msg.topic](msg),
         (err) => console.log("Subscription error: " + err),
         () => console.log("Websocket closed")
-    );
+    ); 
     Object.keys(topics).forEach((topic) => connection.next({
         op: "subscribe",
         topic
@@ -253,10 +256,7 @@ const moveForward = (strength = 1) => new Promise((resolve, reject) => {
         setRightThrusterAngle(0);
         setLeftThrusterPower(strength);
         setRightThrusterPower(strength);
-        setTimeout(() => { 
-            console.log("Moved forward!");
-            resolve()
-        }, 1000); 
+        setTimeout(() => resolve(), 1000); 
     } catch (error) {
         reject(error);
     }
@@ -330,6 +330,16 @@ const stop = () => new Promise((resolve, reject) => {
     }
 });
 
+const sims = ["station_keeping"];
+
+const start = (type) => {
+    if(sims.includes(type)){
+        axios.post("/api/start_sim", { sim: type })
+          .then(() => sim_started = true)
+          .catch((error) => console.log(error));
+    }
+}
+
 if(typeof window === "undefined"){
-  module.exports = { init };
+  module.exports = { init, start };
 }
