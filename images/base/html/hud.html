@@ -135,6 +135,9 @@
   <button id="sim_start">Start</button>
   <script>
     document.getElementById("sim_start").onclick = () => {
+      // Prevent any spam
+      document.getElementById("sim_start").setAttribute("disabled", "");
+      document.getElementById("sim_stop").setAttribute("disabled", "");
       startSim("station_keeping");
       setTimeout(() => window.location.reload(), 5000);
     }
@@ -144,6 +147,9 @@
   <button id="sim_stop">Stop</button>
   <script>
     document.getElementById("sim_stop", onclick = () => {
+      // Prevent any spam
+      document.getElementById("sim_start").setAttribute("disabled", "");
+      document.getElementById("sim_stop").setAttribute("disabled", "");
       stopSim();
       setTimeout(() => window.location.reload(), 5000);
     });
