@@ -335,7 +335,7 @@ const sims = ["station_keeping"];
  * Sends a request to the server to start the requested simulation.
  * @param {string} type - The type of simulation to start.
  */
-const start_sim = (type) => {
+const startSim = (type) => {
     if(sims.includes(type)){
         axios.post("/api/start_sim", { sim: type })
           .catch((error) => console.log(error));
@@ -345,8 +345,8 @@ const start_sim = (type) => {
 /**
  * Sends a request to the server to stop the current running simulation.
  */
-const stop_sim = () => axios.post("/api/stop_sim", {});
+const stopSim = () => axios.post("/api/stop_sim", {});
 
 if(typeof window === "undefined"){
-  module.exports = { init, start_sim, stop_sim };
+  module.exports = { init, startSim, stopSim };
 }
