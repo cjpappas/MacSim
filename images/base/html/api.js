@@ -18,7 +18,7 @@ let connection;
 let data = {
     cur_pos: { heading: 0, lat: 0, lng: 0 },    
     gps_vel: { x: 0, y: 0 },
-    goal_pos: { lat: 0, lng: 0, heading: 0 },
+    goal_pos: undefined,
     task: { name: "None", state: "Not started", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
     wind: { heading: 0, speed: 0 }
 };
