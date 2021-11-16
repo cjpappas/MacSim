@@ -83,7 +83,13 @@
               }
       }
       
-      const craft = init("ws://localhost:9090");
+      function getWebSocketAddress(){
+        const url = window.location.href;
+        const re = /https?:\/\/(.*)\/hud/;
+        return "ws://" + re.exec(url)[1] + ":9090"
+      }
+
+      const craft = init(getWebSocketAddress());
       var map;
       var marker;
 
