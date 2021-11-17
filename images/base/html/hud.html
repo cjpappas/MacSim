@@ -74,6 +74,10 @@
     #editor[show="false"]{
       display: none;
     }
+    #editor-controls {
+      right: 10;
+      top: 10;
+    }
     a {
       text-decoration: none;
     }
@@ -190,5 +194,13 @@
     editor.session.setMode("ace/mode/javascript");
   }
 </script>
+<div id="editor-controls" class="abs">
+  <button id="execute">Execute</button>
+  <script>
+    document.getElementById("execute").onclick = function(){
+      eval(editor.getValue());
+    }
+  </script>
+</div>
 </body>
 </html>
