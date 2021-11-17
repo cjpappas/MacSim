@@ -12,11 +12,12 @@
       font-family:Arial, Helvetica, sans-serif;
       display: flex;
       flex-direction: row;
+      justify-content: space-evenly;
+      align-items: stretch;
     }
 
     #map {
-      height: 100%;
-      width: 49%;
+      flex-grow: 1;
     }
     #api {
       top: 10px;
@@ -67,8 +68,11 @@
       -webkit-text-stroke-color: black;
     }
     #editor {
+      flex-grow: 1;
       height: auto;
-      width: 49%;
+    }
+    #editor[show="false"]{
+      display: none;
     }
     a {
       text-decoration: none;
@@ -80,8 +84,7 @@
 </head>
 
 <body>
-
-  <div id="map" class="abs">
+  <div id="map">
       <script>
         function icon(rotation, colour, scale){
           return {path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
@@ -98,7 +101,8 @@
           return "ws://" + re.exec(url)[1] + ":9090"
         }
 
-        const craft = init(getWebSocketAddress());
+        // const craft = init(getWebSocketAddress());
+        const craft = {};
         var map;
         var marker;
 
@@ -138,7 +142,7 @@
       async defer></script>
   </div>
   <div id="error" class="abs"></div>
-  <svg id="hud" width=50% height=100%></svg>
+  <svg id="hud" width=50% height=100% class="abs"></svg>
   <div id="api" class="abs"><a href="api.js">api.js</a></div>
   <div id="state" class="abs"></div>
   <script>
@@ -177,9 +181,14 @@
       // }, 500);
     </script>
 <div id="editor"></div>
-  <script>
-    var editor = ace.edit("editor");
+<script>
+  var params = new URLSearchParams(window.location.search);
+  if(params.has("ide") && params.get("ide") === "false"){
+    document.getElementById("editor").setAttribute("show", "false"); 
+  } else {
+    var editor = ace.edit("editor"); 
     editor.session.setMode("ace/mode/javascript");
-  </script>
+  }
+</script>
 </body>
 </html>
