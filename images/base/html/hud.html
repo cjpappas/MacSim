@@ -105,8 +105,8 @@
           return "ws://" + re.exec(url)[1] + ":9090"
         }
 
-        // const craft = init(getWebSocketAddress());
-        const craft = {};
+        const craft = init(getWebSocketAddress());
+        // const craft = {};
         var map;
         var marker;
 
@@ -133,14 +133,14 @@
           });
         }
 
-        // setInterval(() => {
-        //   marker.setPosition(craft.getPosition());
-        //   marker.setIcon(icon(craft.getPosition().heading, "#FFFFFF", 1));
-        //   if(craft.getTaskInfo().name === "station_keeping"){
-        //     goal.setPosition(craft.getGoalPosition());
-        //     goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
-        //   }
-        // }, 500);
+        setInterval(() => {
+          marker.setPosition(craft.getPosition());
+          marker.setIcon(icon(craft.getPosition().heading, "#FFFFFF", 1));
+          if(craft.getTaskInfo().name === "station_keeping"){
+            goal.setPosition(craft.getGoalPosition());
+            goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
+          }
+        }, 500);
       </script>
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>
@@ -150,39 +150,39 @@
   <div id="api" class="abs"><a href="api.js">api.js</a></div>
   <div id="state" class="abs"></div>
   <script>
-    // setInterval(() => {
-    //   document.getElementById("state").innerHTML = "Name: " + craft.getTaskInfo().name + " State: " + craft.getTaskInfo().state;
-    // }, 500);
+    setInterval(() => {
+      document.getElementById("state").innerHTML = "Name: " + craft.getTaskInfo().name + " State: " + craft.getTaskInfo().state;
+    }, 500);
   </script>
   <div id="start" class="abs">
     <button id="sim_start">Start</button>
     <script>
-      document.getElementById("sim_start").onclick = () => {
+      document.getElementById("sim_start").onclick = function(){
         // Prevent any spam
-        // document.getElementById("sim_start").setAttribute("disabled", "");
-        // document.getElementById("sim_stop").setAttribute("disabled", "");
-        // startSim("station_keeping");
-        // setTimeout(() => window.location.reload(), 5000);
+        document.getElementById("sim_start").setAttribute("disabled", "");
+        document.getElementById("sim_stop").setAttribute("disabled", "");
+        startSim("station_keeping");
+        setTimeout(() => window.location.reload(), 5000);
       }
     </script>
   </div>
   <div id="stop" class="abs">
     <button id="sim_stop">Stop</button>
     <script>
-      document.getElementById("sim_stop", onclick = () => {
+      document.getElementById("sim_stop", onclick = function(){
         // Prevent any spam
-        // document.getElementById("sim_start").setAttribute("disabled", "");
-        // document.getElementById("sim_stop").setAttribute("disabled", "");
-        // stopSim();
-        // setTimeout(() => window.location.reload(), 5000);
+        document.getElementById("sim_start").setAttribute("disabled", "");
+        document.getElementById("sim_stop").setAttribute("disabled", "");
+        stopSim();
+        setTimeout(() => window.location.reload(), 5000);
       });
     </script>
   </div>
   <div id="timer" class="abs"></div>
     <script>
-      // setInterval(() => {
-      //   document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
-      // }, 500);
+      setInterval(() => {
+        document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
+      }, 500);
     </script>
 <div id="editor"></div>
 <script>
