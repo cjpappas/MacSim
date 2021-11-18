@@ -4,10 +4,15 @@ FROM npslearninglab/watery_robots:noetic_current
 SHELL ["/bin/bash", "-c"]
 
 # useful for debugging
-RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge-suite pip
+RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge-suite pip xvfb
 
 # Install python deps. for server
 RUN pip install Flask
+
+# Setup fake display so gazebo publishes camera info
+# https://github.com/PX4/PX4-containers/issues/198
+RUN Xvfb :1 --screen 0 1600x1200x16 &
+RUN export DISPLAY=:1.0
 
 # build the vrx ROS
 RUN mkdir -p ~/vrx_ws/src
@@ -29,7 +34,3 @@ ADD html /home/developer/html
 CMD source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch & \
     export FLASK_APP=/home/developer/html/server.py && python3 -m flask run --host=0.0.0.0 --port=80 
 
-## Should be built with
-# docker compose build simulation
-## Should be run with 
-# docker run -p 9090:9090 -p 80:80 altmattr/simulation
