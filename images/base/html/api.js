@@ -19,6 +19,11 @@ let data = {
     cur_pos: { heading: 0, lat: 0, lng: 0 },    
     gps_vel: { x: 0, y: 0 },
     goal_pos: undefined,
+    images: {
+        front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
+        front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
+        middle_right: { height: 0, width: 0, encoding: "", step: 0, data: [] }
+    },
     task: { name: "None", state: "Not started", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
     wind: { heading: 0, speed: 0 }
 };
@@ -56,6 +61,33 @@ const topics = {
             timed_out: msg.msg.timed_out,
             score: msg.msg.score
         }  
+    },
+    "/wamv/sensors/cameras/front_left_camera/image_raw": (msg) => {
+        data.images.front_left = {
+            height: msg.msg.height,
+            width: msg.msg.width,
+            encoding: msg.msg.encoding,
+            step: msg.msg.step,
+            data: msg.msg.data
+        }
+    },
+    "/wamv/sensors/cameras/front_right_camera/image_raw": (msg) => {
+        data.images.front_right = {
+            height: msg.msg.height,
+            width: msg.msg.width,
+            encoding: msg.msg.encoding,
+            step: msg.msg.step,
+            data: msg.msg.data
+        }
+    },
+    "/wamv/sensors/cameras/middle_right_camera/image_raw": (msg) => {
+        data.images.middle_right = {
+            height: msg.msg.height,
+            width: msg.msg.width,
+            encoding: msg.msg.encoding,
+            step: msg.msg.step,
+            data: msg.msg.data
+        }
     },
     "/wamv/sensors/gps/gps/fix": (msg) => {
         data.cur_pos.lat = msg.msg.latitude;
@@ -98,6 +130,7 @@ const init = (url) => {
         getPosition,
         getGoalPosition,
         getGPSVelocity,
+        getImages,
         getTaskInfo,
         getWindInfo,
         imm: {
@@ -240,6 +273,16 @@ const getTaskInfo = () => data.task;
  * } 
  */
 const getWindInfo = () => data.wind; 
+
+/**
+ * Returns the currenct image from each of the three cameras.
+ * @returns {
+ *     front_left: { height: int, width: int, encoding: string, step: int, data: [int] },
+ *     front_right: { height: int, width: int, encoding: string, step: int, data: [int] },
+ *     middle_right: { height: int, width: int, encoding: string, step: int, data: [int] }
+ * }
+ */
+const getImages = () => data.images;
 
 // High-level api (promise-based functions)
 
