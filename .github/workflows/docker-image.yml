@@ -20,6 +20,6 @@ jobs:
         image: altmattr/simulation
         tags: latest
         registry: docker.io
-        dockerfile: Dockerfile
+        dockerfile: images/base/Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
