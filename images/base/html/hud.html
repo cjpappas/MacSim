@@ -145,7 +145,7 @@
       document.getElementById("sim_start").setAttribute("disabled", "");
       document.getElementById("sim_stop").setAttribute("disabled", "");
       startSim("station_keeping");
-      setTimeout(() => window.location.reload(), 5000);
+      setTimeout(() => window.location.reload(), 6000);
     }
   </script>
 </div>
@@ -167,6 +167,6 @@
       document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
     }, 500);
   </script>
-<img src="http://localhost:8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw" width=300 height=300 style="position: absolute; left: 20; bottom: 20;">
+<img src="http://localhost:8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
 </body>
 </html>
