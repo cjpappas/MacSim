@@ -9,19 +9,16 @@ This repository contains a docker image to run a [vrx gazebo simulation](https:/
 To build image locally, clone this repository build the image in `images/base`:
 ```bash
 git clone https://github.com/cjpappas/MacSim.git
-cd images/base
-docker build -t altmattr/simulation .
+docker build -f images/base/Dockerfile -t altmattr/simulation .
 ```
-Alternatively, you can pull the latest version from [Dockerhub](https://hub.docker.com/):
-```bash
-docker pull altmattr/simulation
-```
+Alternatively, you can pull the latest version from [Dockerhub](https://hub.docker.com/). This is done automatically if the image isn't found locally.
 
 To run the image:
 ```bash
 docker run -itd \
     --name sim \
     -p 9090:9090 \
+    -p 8080:8080 \
     -p 80:80 \
     altmattr/simulation
 ```

@@ -20,7 +20,9 @@ def api():
 def start():
     sim = request.json["sim"]
     if sim in sims.keys():
-        subprocess.run(["source ~/vrx_ws/devel/setup.bash && roslaunch vrx_gazebo %s gui:=false"%(sims[sim])],
+        # Need a virtual display to force gazebo to add Camera sensors and publish
+        # https://github.com/PX4/PX4-containers/issues/198
+        subprocess.run(["source ~/vrx_ws/devel/setup.bash && (Xvfb :1 -screen 0 1600x1200x16 &) && export DISPLAY=:1.0 && roslaunch vrx_gazebo %s gui:=false"%(sims[sim])],
                                  executable="/bin/bash", shell=True)
         return {"status": "Simulation started."}, 200
     return {"status": "Simulation type not found"}, 404
