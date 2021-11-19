@@ -169,12 +169,10 @@
   </script>
 <img id="camera_stream" src="http://localhost:8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
 <script>
-  window.addEventListener("load", () => {
-    var params = new URLSearchParams(window.location.search);
-    if(params.has("camera") && params.get("camera") === "false"){
-      document.getElementById("camera_stream").setAttribute("display", "none");
-    }
-  });
+  var params = new URLSearchParams(window.location.search);
+  if(params.has("camera") && params.get("camera") === "false"){
+    document.getElementById("camera_stream").style.display = "none";
+  }
 </script>
 </body>
 </html>
