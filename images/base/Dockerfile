@@ -4,7 +4,7 @@ FROM npslearninglab/watery_robots:noetic_current
 SHELL ["/bin/bash", "-c"]
 
 # useful for debugging
-RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge-suite pip xvfb
+RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge-suite pip xvfb ros-noetic-web-video-server
 
 # Install python deps. for server
 RUN pip install Flask
@@ -19,7 +19,7 @@ RUN mkdir -p ~/vrx_ws/src
 RUN cd ~/vrx_ws/src && git clone https://github.com/osrf/vrx
 
 # put our custom things in
-COPY src /home/developer/vrx_ws/src
+COPY images/base/src /home/developer/vrx_ws/src
 
 # build it
 RUN cd ~/vrx_ws/ \ 
@@ -28,9 +28,10 @@ RUN cd ~/vrx_ws/ \
 
 # bring over the html to serve
 RUN mkdir /home/developer/html
-ADD html /home/developer/html
+ADD images/base/html /home/developer/html
 
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
-CMD source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch & \
+CMD source ~/vrx_ws/devel/setup.bash && (roslaunch rosbridge_server rosbridge_websocket.launch &) && \
+    (rosrun web_video_server web_video_server &) && \
     export FLASK_APP=/home/developer/html/server.py && python3 -m flask run --host=0.0.0.0 --port=80 
 
