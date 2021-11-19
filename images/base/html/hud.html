@@ -167,8 +167,10 @@
       document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
     }, 500);
   </script>
-<img id="camera_stream" src="http://localhost:8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
+<img id="camera_stream" src="" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
 <script>
+  const re = /https?:\/\/(.*)\/hud/;
+  document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
   var params = new URLSearchParams(window.location.search);
   if(params.has("camera") && params.get("camera") === "false"){
     document.getElementById("camera_stream").style.display = "none";
