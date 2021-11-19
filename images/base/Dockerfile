@@ -23,7 +23,7 @@ RUN cd ~/vrx_ws/ \
 
 # bring over the html to serve
 RUN mkdir /home/developer/html
-ADD html /home/developer/html
+ADD images/base/html /home/developer/html
 
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
 CMD source ~/vrx_ws/devel/setup.bash && roslaunch rosbridge_server rosbridge_websocket.launch & \
