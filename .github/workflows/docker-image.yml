@@ -14,8 +14,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Change directory to image
-      run: cd images/base/
     - uses: mr-smithers-excellent/docker-build-push@v5
       name: Build & push Docker image
       with:
