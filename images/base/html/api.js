@@ -1,8 +1,8 @@
 // Documentation - https://github.com/cjpappas/MacSim/wiki/api
-// let axios
+const env = typeof window === "undefined" ? "node" : "broswer"
 let three;
 let webSocket;
-if(typeof window === "undefined"){
+if(env === "node"){
   axios = require("axios");
   three = require("three");
   webSocket = require("rxjs/webSocket").webSocket;
@@ -122,10 +122,14 @@ const init = (url) => {
         (err) => console.log("Subscription error: " + err),
         () => console.log("Websocket closed")
     ); 
-    Object.keys(topics).forEach((topic) => connection.next({
-        op: "subscribe",
-        topic
-    }));
+    Object.keys(topics).forEach((topic) => {
+        if(env === "broswer" && !topic.includes("camera")){
+            connection.next({
+                op: "subscribe",
+                topic
+            });
+        }
+    });
     return {
         getPosition,
         getGoalPosition,
@@ -390,6 +394,6 @@ const startSim = (type) => {
  */
 const stopSim = () => axios.post("/api/stop_sim", {});
 
-if(typeof window === "undefined"){
+if(env === "node"){
   module.exports = { init, startSim, stopSim };
 }
