@@ -14,7 +14,7 @@ RUN mkdir -p ~/vrx_ws/src
 RUN cd ~/vrx_ws/src && git clone https://github.com/osrf/vrx
 
 # put our custom things in
-COPY src /home/developer/vrx_ws/src
+COPY images/base/src /home/developer/vrx_ws/src
 
 # build it
 RUN cd ~/vrx_ws/ \ 
