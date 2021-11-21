@@ -6,7 +6,7 @@ sims = { "station_keeping": "station_keeping.launch" }
 
 @app.route("/")
 def index():
-    return redirect(url_for("hud"))
+    return send_from_directory("", "landing.html") 
 
 @app.route("/hud")
 def hud():
