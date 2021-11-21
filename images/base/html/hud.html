@@ -155,27 +155,28 @@
     }, 500);
   </script>
   <div id="start" class="abs">
-    <button id="sim_start">Start</button>
+    <button id="sim-start">Start</button>
     <script>
-      document.getElementById("sim_start").onclick = function(){
+      document.getElementById("sim-start").onclick = function(){
         // Prevent any spam
-        document.getElementById("sim_start").setAttribute("disabled", "");
-        document.getElementById("sim_stop").setAttribute("disabled", "");
+        document.getElementById("sim-start").setAttribute("disabled", "");
+        document.getElementById("sim-stop").setAttribute("disabled", "");
         startSim("station_keeping");
         setTimeout(() => window.location.reload(), 5000);
       }
     </script>
   </div>
   <div id="stop" class="abs">
-    <button id="sim_stop">Stop</button>
+    <button id="sim-stop">Stop</button>
     <script>
-      document.getElementById("sim_stop", onclick = function(){
+      document.getElementById("sim-stop").onclick = function(){
+        console.log("Firing stop-sim");
         // Prevent any spam
-        document.getElementById("sim_start").setAttribute("disabled", "");
-        document.getElementById("sim_stop").setAttribute("disabled", "");
+        document.getElementById("sim-start").setAttribute("disabled", "");
+        document.getElementById("sim-stop").setAttribute("disabled", "");
         stopSim();
         setTimeout(() => window.location.reload(), 5000);
-      });
+      };
     </script>
   </div>
   <div id="timer" class="abs"></div>
@@ -185,15 +186,6 @@
       }, 500);
     </script>
 <div id="editor"></div>
-<script>
-  var params = new URLSearchParams(window.location.search);
-  if(params.has("ide") && params.get("ide") === "false"){
-    document.getElementById("editor").setAttribute("show", "false"); 
-  } else {
-    var editor = ace.edit("editor"); 
-    editor.session.setMode("ace/mode/javascript");
-  }
-</script>
 <div id="editor-controls" class="abs">
   <button id="execute">Execute</button>
   <script>
@@ -202,33 +194,16 @@
     }
   </script>
 </div>
-    document.getElementById("sim_start").onclick = () => {
-      // Prevent any spam
-      document.getElementById("sim_start").setAttribute("disabled", "");
-      document.getElementById("sim_stop").setAttribute("disabled", "");
-      startSim("station_keeping");
-      setTimeout(() => window.location.reload(), 6000);
-    }
-  </script>
-</div>
-<div id="stop">
-  <button id="sim_stop">Stop</button>
-  <script>
-    document.getElementById("sim_stop", onclick = () => {
-      // Prevent any spam
-      document.getElementById("sim_start").setAttribute("disabled", "");
-      document.getElementById("sim_stop").setAttribute("disabled", "");
-      stopSim();
-      setTimeout(() => window.location.reload(), 5000);
-    });
-  </script>
-</div>
-<div id="timer"></div>
-  <script>
-    setInterval(() => {
-      document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
-    }, 500);
-  </script>
+<script>
+  var params = new URLSearchParams(window.location.search);
+  if(params.has("ide") && params.get("ide") === "false"){
+    document.getElementById("editor").setAttribute("show", "false");
+    document.getElementById("editor-controls").style.display = "none";
+  } else {
+    var editor = ace.edit("editor"); 
+    editor.session.setMode("ace/mode/javascript");
+  }
+</script>
 <img id="camera_stream" src="" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
 <script>
   const re = /https?:\/\/(.*)\/hud/;
