@@ -106,7 +106,6 @@
         }
 
         const craft = init(getWebSocketAddress());
-        // const craft = {};
         var map;
         var marker;
 
@@ -158,11 +157,15 @@
     <button id="sim-start">Start</button>
     <script>
       document.getElementById("sim-start").onclick = function(){
-        // Prevent any spam
-        document.getElementById("sim-start").setAttribute("disabled", "");
-        document.getElementById("sim-stop").setAttribute("disabled", "");
-        startSim("station_keeping");
-        setTimeout(() => window.location.reload(), 7000);
+        if(craft.getTaskInfo().state !== "Not started"){
+          alert("A simulation is already running. Please wait until it has finished or stop it.")
+        } else {
+          // Prevent any spam
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          startSim("station_keeping");
+          setTimeout(() => window.location.reload(), 7000);
+        }
       }
     </script>
   </div>
@@ -170,12 +173,15 @@
     <button id="sim-stop">Stop</button>
     <script>
       document.getElementById("sim-stop").onclick = function(){
-        console.log("Firing stop-sim");
-        // Prevent any spam
-        document.getElementById("sim-start").setAttribute("disabled", "");
-        document.getElementById("sim-stop").setAttribute("disabled", "");
-        stopSim();
-        setTimeout(() => window.location.reload(), 5000);
+        if(craft.getTaskInfo().state === "Not started"){
+          alert("A simulation hasn't been started yet.")
+        } else {
+          // Prevent any spam
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          stopSim();
+          setTimeout(() => window.location.reload(), 5000);
+        }
       };
     </script>
   </div>
@@ -190,7 +196,11 @@
   <button id="execute">Execute</button>
   <script>
     document.getElementById("execute").onclick = function(){
-      eval(editor.getValue());
+      if(craft.getTaskInfo().state === "running"){
+        eval(editor.getValue());
+      } else {
+        alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
+      }
     }
   </script>
 </div>
