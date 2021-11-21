@@ -202,5 +202,41 @@
     }
   </script>
 </div>
+    document.getElementById("sim_start").onclick = () => {
+      // Prevent any spam
+      document.getElementById("sim_start").setAttribute("disabled", "");
+      document.getElementById("sim_stop").setAttribute("disabled", "");
+      startSim("station_keeping");
+      setTimeout(() => window.location.reload(), 6000);
+    }
+  </script>
+</div>
+<div id="stop">
+  <button id="sim_stop">Stop</button>
+  <script>
+    document.getElementById("sim_stop", onclick = () => {
+      // Prevent any spam
+      document.getElementById("sim_start").setAttribute("disabled", "");
+      document.getElementById("sim_stop").setAttribute("disabled", "");
+      stopSim();
+      setTimeout(() => window.location.reload(), 5000);
+    });
+  </script>
+</div>
+<div id="timer"></div>
+  <script>
+    setInterval(() => {
+      document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
+    }, 500);
+  </script>
+<img id="camera_stream" src="" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
+<script>
+  const re = /https?:\/\/(.*)\/hud/;
+  document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+  var params = new URLSearchParams(window.location.search);
+  if(params.has("camera") && params.get("camera") === "false"){
+    document.getElementById("camera_stream").style.display = "none";
+  }
+</script>
 </body>
 </html>
