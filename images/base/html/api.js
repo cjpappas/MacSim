@@ -115,7 +115,7 @@ const topics = {
  * @param {string} url - The url of the simualtion.
  * @returns {Object} Contains functions to interact with simulation.
  */
-const init = (url) => {
+const init = (url, setup = undefined, act = undefined) => {
     connection = new webSocket(url);
     connection.subscribe(
         (msg) => topics[msg.topic](msg),
@@ -130,6 +130,7 @@ const init = (url) => {
             });
         }
     });
+    if(setup !== undefined) setup();
     return {
         getPosition,
         getGoalPosition,
@@ -149,7 +150,13 @@ const init = (url) => {
         moveBackwards,
         rotateAnticlockwise,
         rotateClockwise,
-        stop
+        stop,
+        act: act === undefined ? () => {} : () => {
+            var interval = setInterval(() => {
+                act();
+                if(getTaskInfo().state === "finished") clearInterval(interval);
+            }, 1000)
+        }
     }
 }
 
