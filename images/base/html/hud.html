@@ -4,14 +4,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.3.0/rxjs.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="./api.js"></script>
   <style>
     body {
       font-family:Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-evenly;
+      align-items: stretch;
     }
+
     #map {
-      height: 100%;
-      width: 100%;
+      flex-grow: 1;
     }
     #api {
       top: 10px;
@@ -61,112 +67,143 @@
       -webkit-text-stroke-width: 0.5px;
       -webkit-text-stroke-color: black;
     }
-    a{
+    #editor {
+      flex-grow: 1;
+      height: auto;
+    }
+    #editor[show="false"]{
+      display: none;
+    }
+    #editor-controls {
+      right: 10;
+      top: 10;
+    }
+    a {
       text-decoration: none;
     }
-    div {
-      position: absolute
+    .abs {
+      position: absolute;
     }
     </style>
 </head>
 
 <body>
-
-<div id="map">
-    <script>
-     function icon(rotation, colour, scale){
-        return {path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
-                fillOpacity: 1,
-                fillColor: colour,
-                scale:0.5*scale, 
-                rotation:(rotation/(Math.PI))*-180
-              }
-      }
-      
-      function getWebSocketAddress(){
-        const url = window.location.href;
-        const re = /https?:\/\/(.*)\/hud/;
-        return "ws://" + re.exec(url)[1] + ":9090"
-      }
-
-      const craft = init(getWebSocketAddress());
-      var map;
-      var marker;
-
-      function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: -33.7224, lng: 150.67398},
-          zoom: 20,
-          disableDefaultUI: true,
-          scaleControl: true,
-          zoomControl: true,
-          mapTypeId: "satellite",
-        });
-        marker = new google.maps.Marker({
-          position: {lat: -33.722, lng:150.67398},
-          icon: icon(Math.PI/2, "#FFFFFF", 1),
-          map,
-          title: "craft",
-        });
-        goal = new google.maps.Marker({
-          position: {lat: 0, lng: 0},
-          icon: icon(Math.PI/2, "#05FF05", 0.5),
-          map,
-          title: "goal",
-        });
-      }
-
-      setInterval(() => {
-        marker.setPosition(craft.getPosition());
-        marker.setIcon(icon(craft.getPosition().heading, "#FFFFFF", 1));
-        if(craft.getTaskInfo().name === "station_keeping"){
-          goal.setPosition(craft.getGoalPosition());
-          goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
+  <div id="map">
+      <script>
+        function icon(rotation, colour, scale){
+          return {path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
+                  fillOpacity: 1,
+                  fillColor: colour,
+                  scale:0.5*scale, 
+                  rotation:(rotation/(Math.PI))*-180
+                }
         }
+        
+        function getWebSocketAddress(){
+          const url = window.location.href;
+          const re = /https?:\/\/(.*)\/hud/;
+          return "ws://" + re.exec(url)[1] + ":9090"
+        }
+
+        const craft = init(getWebSocketAddress());
+        // const craft = {};
+        var map;
+        var marker;
+
+        function initMap() {
+          map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -33.7224, lng: 150.67398},
+            zoom: 20,
+            disableDefaultUI: true,
+            scaleControl: true,
+            zoomControl: true,
+            mapTypeId: "satellite",
+          });
+          marker = new google.maps.Marker({
+            position: {lat: -33.722, lng:150.67398},
+            icon: icon(Math.PI/2, "#FFFFFF", 1),
+            map,
+            title: "craft",
+          });
+          goal = new google.maps.Marker({
+            position: {lat: 0, lng: 0},
+            icon: icon(Math.PI/2, "#05FF05", 0.5),
+            map,
+            title: "goal",
+          });
+        }
+
+        setInterval(() => {
+          marker.setPosition(craft.getPosition());
+          marker.setIcon(icon(craft.getPosition().heading, "#FFFFFF", 1));
+          if(craft.getTaskInfo().name === "station_keeping"){
+            goal.setPosition(craft.getGoalPosition());
+            goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
+          }
+        }, 500);
+      </script>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
+      async defer></script>
+  </div>
+  <div id="error" class="abs"></div>
+  <svg id="hud" width=50% height=100% class="abs"></svg>
+  <div id="api" class="abs"><a href="api.js">api.js</a></div>
+  <div id="state" class="abs"></div>
+  <script>
+    setInterval(() => {
+      document.getElementById("state").innerHTML = "Name: " + craft.getTaskInfo().name + " State: " + craft.getTaskInfo().state;
+    }, 500);
+  </script>
+  <div id="start" class="abs">
+    <button id="sim-start">Start</button>
+    <script>
+      document.getElementById("sim-start").onclick = function(){
+        // Prevent any spam
+        document.getElementById("sim-start").setAttribute("disabled", "");
+        document.getElementById("sim-stop").setAttribute("disabled", "");
+        startSim("station_keeping");
+        setTimeout(() => window.location.reload(), 7000);
+      }
+    </script>
+  </div>
+  <div id="stop" class="abs">
+    <button id="sim-stop">Stop</button>
+    <script>
+      document.getElementById("sim-stop").onclick = function(){
+        console.log("Firing stop-sim");
+        // Prevent any spam
+        document.getElementById("sim-start").setAttribute("disabled", "");
+        document.getElementById("sim-stop").setAttribute("disabled", "");
+        stopSim();
+        setTimeout(() => window.location.reload(), 5000);
+      };
+    </script>
+  </div>
+  <div id="timer" class="abs"></div>
+    <script>
+      setInterval(() => {
+        document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
       }, 500);
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
-    async defer></script>
-</div>
-<div id="error"></div>
-<svg id="hud" width = 100% height=100%></svg>
-<div id="api"><a href="api.js">api.js</a></div>
-<div id="state"></div>
-<script>
-  setInterval(() => {
-    document.getElementById("state").innerHTML = "Name: " + craft.getTaskInfo().name + " State: " + craft.getTaskInfo().state;
-  }, 500);
-</script>
-<div id="start">
-  <button id="sim_start">Start</button>
+<div id="editor"></div>
+<div id="editor-controls" class="abs">
+  <button id="execute">Execute</button>
   <script>
-    document.getElementById("sim_start").onclick = () => {
-      // Prevent any spam
-      document.getElementById("sim_start").setAttribute("disabled", "");
-      document.getElementById("sim_stop").setAttribute("disabled", "");
-      startSim("station_keeping");
-      setTimeout(() => window.location.reload(), 6000);
+    document.getElementById("execute").onclick = function(){
+      eval(editor.getValue());
     }
   </script>
 </div>
-<div id="stop">
-  <button id="sim_stop">Stop</button>
-  <script>
-    document.getElementById("sim_stop", onclick = () => {
-      // Prevent any spam
-      document.getElementById("sim_start").setAttribute("disabled", "");
-      document.getElementById("sim_stop").setAttribute("disabled", "");
-      stopSim();
-      setTimeout(() => window.location.reload(), 5000);
-    });
-  </script>
-</div>
-<div id="timer"></div>
-  <script>
-    setInterval(() => {
-      document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
-    }, 500);
-  </script>
+<script>
+  var params = new URLSearchParams(window.location.search);
+  if(params.has("ide") && params.get("ide") === "false"){
+    document.getElementById("editor").setAttribute("show", "false");
+    document.getElementById("editor-controls").style.display = "none";
+  } else {
+    var editor = ace.edit("editor"); 
+    editor.session.setMode("ace/mode/javascript");
+  }
+</script>
 <img id="camera_stream" src="" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
 <script>
   const re = /https?:\/\/(.*)\/hud/;
