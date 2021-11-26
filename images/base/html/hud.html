@@ -194,12 +194,22 @@
 <div id="editor"></div>
 <div id="editor-controls" class="abs">
   <button id="execute">Execute</button>
+  <button id="share">Share</button>
   <script>
     document.getElementById("execute").onclick = function(){
       if(craft.getTaskInfo().state === "running"){
         eval(editor.getValue());
       } else {
         alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
+      }
+    }
+    document.getElementById("share").onclick = function(){
+      const program = editor.getValue();
+      if(program === ""){
+        alert("No code to share :(")
+      } else {
+        const encodedProgram = encodeURI(btoa(program));
+        alert(`Append the following to your url\ncode=${encodedProgram}`);
       }
     }
   </script>

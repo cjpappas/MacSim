@@ -30,10 +30,19 @@ source /opt/ros/noetic/setup.bash
 source ~/vrx_ws/devel/setup.bash
 ```
 
-# Connecting to the Simulation
+## Connecting to the Simulation
 
 The container hosts a small webserver that allows you to connect to the simulation via a webpage. To access the simulation you can navigate to `http://localhost` or you can open the `image/base/html/hud/html` in the browser and it will provide a visula overview of the simualtion. You can also connect to the simulation from other programs such as node. Detailed documentation on the api can be found on the repositories wiki [here](https://github.com/cjpappas/MacSim/wiki/api).
 
-# Troubleshooting
+## Development
+
+### Generating & Sharing Programs
+You can generate and share programs with other users through the use of base64 encoded strings. These strings can be provided through the `code` url parameter `http://.../hud?code=<base64_string>`. We have included a node program to generate these strings in `local_programs/program_encoder`. The program can be run (from the project root) with:
+```bash
+node local_programs/program_encoder/Main.js <path_to_file>
+```
+This will output the encoded program string to the console, which you can then supply in the url.
+
+## Troubleshooting
 
 If your docker build fails, try increasing the memory and the swap file available to docker (docker desktop > preferences)
