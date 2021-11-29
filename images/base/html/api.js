@@ -166,12 +166,7 @@ const init = (url, setup = undefined, act = undefined) => {
         rotateAnticlockwise,
         rotateClockwise,
         stop,
-        act: act === undefined ? () => {} : () => {
-            var interval = setInterval(() => {
-                act();
-                if(getTaskInfo().state === "finished") clearInterval(interval);
-            }, 1000)
-        }
+        act: act === undefined ? () => {} : act
     }
 }
 
@@ -428,8 +423,12 @@ const sims = ["station_keeping"];
  * Sends a request to the server to start the requested simulation.
  * @param {string} type - The type of simulation to start.
  */
-const startSim = (type) => {
+const startSim = (type, craft) => {
     if(sims.includes(type)){
+        var interval = setInterval(() => {
+            craft.act();
+            if(getTaskInfo().state === "finished") clearInterval(interval);
+        }, 1000);
         return axios.post("/api/start_sim", { sim: type });
     }
 }
