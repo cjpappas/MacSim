@@ -110,6 +110,7 @@
         let craft = init(getWebSocketAddress());
         var map;
         var marker;
+        let simStarted = false;
 
         function initMap() {
           map = new google.maps.Map(document.getElementById('map'), {
@@ -158,34 +159,29 @@
   <div id="start" class="abs">
     <button id="sim-start">Start</button>
     <script>
-      document.getElementById("sim-start").onclick = function(){
+      document.getElementById("sim-start").onclick = () => {
         if(craft.getTaskInfo().state !== "Not started"){
           alert("A simulation is already running. Please wait until it has finished or stop it.")
-        } else {
-          // Prevent any spam
           document.getElementById("sim-start").setAttribute("disabled", "");
-          document.getElementById("sim-stop").setAttribute("disabled", "");
-          startSim("station_keeping").then(() => {
-            craft = init(getWebSocketAddress());
-            console.log("After start");
-          });
-          // setTimeout(() => window.location.reload(), 7000);
+          document.getElementById("sim-stop").removeAttribute("disabled");
+        } else {
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          startSim("station_keeping").then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
         }
       }
     </script>
   </div>
   <div id="stop" class="abs">
-    <button id="sim-stop">Stop</button>
+    <button id="sim-stop" disabled>Stop</button>
     <script>
       document.getElementById("sim-stop").onclick = function(){
         if(craft.getTaskInfo().state === "Not started"){
-          alert("A simulation hasn't been started yet.")
-        } else {
-          // Prevent any spam
-          document.getElementById("sim-start").setAttribute("disabled", "");
+          alert("A simulation hasn't been started yet.");
           document.getElementById("sim-stop").setAttribute("disabled", "");
-          stopSim();
-          setTimeout(() => window.location.reload(), 5000);
+          document.getElementById("sim-start").removeAttribute("disabled");
+        } else {
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          stopSim().then(() => document.getElementById("sim-start").removeAttribute("disabled"));
         }
       };
     </script>

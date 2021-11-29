@@ -11,7 +11,7 @@ if(env === "node"){
 const MS_TO_KNOTS = 1.94384;
 
 let connection;
-let data = {
+const initialData = {
     cur_pos: { heading: 0, lat: 0, lng: 0 },    
     gps_vel: { x: 0, y: 0 },
     goal_pos: undefined,
@@ -23,6 +23,7 @@ let data = {
     task: { name: "None", state: "Not started", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
     wind: { heading: 0, speed: 0 }
 };
+let data = JSON.parse(JSON.stringify(initialData)); // Deep copy
 
 const topics = {
     "/vrx/debug/wind/direction": {
@@ -429,14 +430,15 @@ const sims = ["station_keeping"];
  */
 const startSim = (type) => {
     if(sims.includes(type)){
-        axios.post("/api/start_sim", { sim: type }).catch((error) => console.log(error));
+        return axios.post("/api/start_sim", { sim: type });
     }
 }
 
 /**
  * Sends a request to the server to stop the current running simulation.
  */
-const stopSim = () => axios.post("/api/stop_sim", {});
+const stopSim = () => 
+    axios.post("/api/stop_sim", {}).then(() => data = JSON.parse(JSON.stringify(initialData)));
 
 if(env === "node"){
   module.exports = { init, startSim, stopSim };
