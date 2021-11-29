@@ -4,6 +4,7 @@ let three;
 if(env === "node"){
   axios = require("axios");
   three = require("three");
+  ROSLIB = require("roslib");
 } else {
   three = THREE;
 }
@@ -425,9 +426,10 @@ const sims = ["station_keeping"];
  */
 const startSim = (type, craft) => {
     if(sims.includes(type)){
+        data.task.state = "initialising";
         var interval = setInterval(() => {
             craft.act();
-            if(getTaskInfo().state === "finished") clearInterval(interval);
+            if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") clearInterval(interval);
         }, 1000);
         return axios.post("/api/start_sim", { sim: type });
     }
