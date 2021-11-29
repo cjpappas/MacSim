@@ -118,8 +118,12 @@ const topics = {
 const init = (url, setup = undefined, act = undefined) => {
     connection = new webSocket(url);
     connection.subscribe(
-        (msg) => topics[msg.topic](msg),
-        (err) => console.log("Subscription error: " + err),
+        (msg) => { console.log(msg); topics[msg.topic](msg) },
+        (err) => {
+            console.log("Subscription error: " + err);
+            console.log("Attempting to resubscribe in 1 second");
+            setTimeout(() => init(url, setup, act), 1000);
+        },
         () => console.log("Websocket closed")
     ); 
     Object.keys(topics).forEach((topic) => {
@@ -389,10 +393,10 @@ const sims = ["station_keeping"];
  * Sends a request to the server to start the requested simulation.
  * @param {string} type - The type of simulation to start.
  */
-const startSim = (type) => {
+const startSim = async (type) => {
     if(sims.includes(type)){
-        axios.post("/api/start_sim", { sim: type })
-          .catch((error) => console.log(error));
+        await axios.post("/api/start_sim", { sim: type })
+                .catch((error) => console.log(error));
     }
 }
 
