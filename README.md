@@ -60,4 +60,4 @@ node local_programs/program_encoder/Main.js <path_to_file>
 This will output the encoded program string to the console, which you can then supply in the url.
 
 ## Troubleshooting
-If your docker build fails, try increasing the memory and the swap file available to docker (docker desktop > preferences)
+If your docker build fails, try increasing the memory and the swap file available to docker (docker desktop > preferences).
