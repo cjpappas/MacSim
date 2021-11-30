@@ -199,7 +199,11 @@
   <script>
     document.getElementById("execute").onclick = function(){
       if(craft.getTaskInfo().state === "running"){
-        eval(editor.getValue());
+        try {
+          eval(editor.getValue());
+        } catch (error) {
+          alert(error.message);
+        }
       } else {
         alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
       }
