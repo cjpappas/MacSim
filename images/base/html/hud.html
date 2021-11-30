@@ -1,93 +1,24 @@
 <html>
 <meta charset="UTF-8">
 <head>
+  <link rel="stylesheet" type="text/css" href="/style"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.3.0/rxjs.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="./api.js"></script>
-  <style>
-    body {
-      font-family:Arial, Helvetica, sans-serif;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-evenly;
-      align-items: stretch;
-    }
-
-    #map {
-      flex-grow: 1;
-    }
-    #api {
-      top: 10px;
-      left: 100px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #timer {
-      top: 10px;
-      right: 20px;
-      font-size: 25px;
-      -webkit-text-fill-color: white; 
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #error {
-      top: 50px;
-      left: 10px;
-      font-size: 60px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: red;
-    }
-    #state {
-      top: 10px;
-      left: 300px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black; 
-    }
-    #start {
-      top: 10px;
-      left: 200px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #stop {
-      top: 10px;
-      left: 250px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #editor {
-      flex-grow: 1;
-      height: auto;
-    }
-    #editor[show="false"]{
-      display: none;
-    }
-    #editor-controls {
-      right: 10;
-      top: 10;
-    }
-    a {
-      text-decoration: none;
-    }
-    .abs {
-      position: absolute;
-    }
-    </style>
+  
 </head>
-
 <body>
+
+  <nav>
+    <a class="item" href="#">Team Boat</a>
+    <a class="push" href="/">Home</a>
+    <a class="item" href="/hud">Simulation</a>
+    <a class="item" href="#">Documentation</a>
+  </nav>
+  
   <div id="map">
       <script>
         function icon(rotation, colour, scale){
