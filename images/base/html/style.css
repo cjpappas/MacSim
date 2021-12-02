@@ -5,6 +5,58 @@ html, body {
   background-color:white;
 }
 
+a {
+  text-decoration: none;
+}
+
+/***** NAVIGATION *****/
+ 
+nav {
+  width: 100%;
+  height: 20px;
+  gap: 10px;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #D6D2C4;
+  border-bottom: 4px solid white;
+  height: 40px;
+  text-align: center;
+  overflow: hidden;
+  border-bottom: 4px solid white;
+}
+
+nav a {
+  display: inline-block;
+  position: relative;
+  text-decoration: none;
+  padding: 10px;
+  color: #373A36;
+  font-size: 18px;
+
+}
+
+nav a:after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px; 
+  width: 94%;
+  height: 2px;
+  transform: scaleX(0);
+  background-color: #373A36;
+  transition: transform 0.3s;
+}
+
+nav a:hover:after {
+  transform: scaleX(1);
+}
+
+.push {
+  margin-left: auto;
+  height: auto;
+}
+
 /***** LANDING PAGE TITLES *****/
 
 .container-titles{
@@ -69,53 +121,38 @@ html, body {
   height: 100%;
 } 
 
-/***** NAVIGATION *****/
- 
-nav {
-  width: 100%;
-  height: 20px;
-  gap: 10px;
+/***** LANDING PAGE CONTENT *****/
+
+.body-content {
   display: flex;
-  justify-content: flex-end;
-  background-color: #D6D2C4;
-  border-bottom: 4px solid white;
+  flex-direction: column;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.content-link {
+  background-color: #A6192E;
   height: 40px;
   text-align: center;
-  overflow: hidden;
+  line-height: 40px;
+  font-size: 20px;
+  color: white;
+  width: 15%;
+  border: none;
+  cursor: pointer;
 }
 
-nav a {
-  display: inline-block;
-  position: relative;
-  text-decoration: none;
+.content-title {
+  width: 100%;
+}
+
+/***** SIMULATION CONTENT *****/
+
+#control-panel {
+  width: 100%;
   padding: 10px;
-  color: #373A36;
-  font-size: 18px;
-
+  display: flex;
 }
-
-nav a:after {
-  content: '';
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  right: 5px; 
-  width: 94%;
-  height: 2px;
-  transform: scaleX(0);
-  background-color: #373A36;
-  transition: transform 0.3s;
-}
-
-nav a:hover:after {
-  transform: scaleX(1);
-}
-
-.push{
-  margin-left: auto;
-  height: auto;
-}
-
 
 #map {
   width: 70%;
@@ -123,73 +160,66 @@ nav a:hover:after {
   order: 1;         
 }
 
+#info-panel {
+  display: flex;
+  width: 29%;
+  background-color: #D6D2C4;
+  height: 100%;
+  flex-direction: column;
+}
+
+.panel {
+  width: 100%;
+  height: 30%;
+}
+
+.panel h2{
+  color: #373A36;
+  padding-left: 10px;
+}
+
+.panel p{
+  color: #373A36;
+  padding-left: 10px;
+  font-size: 18px;
+}
+
+.hud-link {
+  background-color: #A6192E;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  font-size: 20px;
+  color: white;
+  width: 10%;
+  border: none;
+  cursor: pointer;
+  margin-right: 2px;
+}
+
+#camera_stream {
+  width: 100%;
+  height: 100%;
+}
+
 #editor {
-  width: 28%;
-  order: 2;
-  border: 2px solid red;
+  height: 50%;
 }
 
 #editor[show="false"]{
   display: none;
 }
 
-    #editor-controls {
-      right: 10;
-      top: 10;
-    }
+#editor-controls {
+  right: 10;
+  top: 10;
+}
 
-    #api {
-      top: 10px;
-      left: 100px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #timer {
-      top: 10px;
-      right: 20px;
-      font-size: 25px;
-      -webkit-text-fill-color: white; 
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #error {
-      top: 50px;
-      left: 10px;
-      font-size: 60px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: red;
-    }
-    #state {
-      top: 10px;
-      left: 300px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black; 
-    }
-    #start {
-      top: 10px;
-      left: 200px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #stop {
-      top: 10px;
-      left: 250px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-
-    a {
-      text-decoration: none;
-    }
-    .abs {
-      position: absolute;
-    }
+#error {
+  top: 50px;
+  left: 10px;
+  font-size: 60px;
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke-width: 0.5px;
+  -webkit-text-stroke-color: red;
+}

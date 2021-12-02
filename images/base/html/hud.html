@@ -8,17 +8,69 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="./api.js"></script>
-  
 </head>
+
 <body>
 <div id="main-content">
   <nav>
     <a class="item" href="#">Team Boat</a>
-    <a class="push" href="/">Home</a>
+    <a class="push item" href="/">Home</a>
     <a class="item" href="/hud">Simulation</a>
     <a class="item" href="#">Documentation</a>
   </nav>
   
+  <div id="control-panel">
+
+    <!-- API.js Link -->
+    <a class="hud-link" href="api.js">api.js</a>
+
+    <!-- Start Simulation -->
+    <button class="hud-link" id="sim-start">Start Simulation</button>
+      <script>
+        document.getElementById("sim-start").onclick = function(){
+          if(craft.getTaskInfo().state !== "Not started"){
+            alert("A simulation is already running. Please wait until it has finished or stop it.")
+          } else {
+            // Prevent any spam
+            document.getElementById("sim-start").setAttribute("disabled", "");
+            document.getElementById("sim-stop").setAttribute("disabled", "");
+            startSim("station_keeping");
+            setTimeout(() => window.location.reload(), 7000);
+          }
+        }
+      </script>
+
+    <!-- Stop Simulation -->
+    <button class="hud-link" id="sim-stop">Stop Simulation</button>
+      <script>
+          document.getElementById("sim-stop").onclick = function(){
+            if(craft.getTaskInfo().state === "Not started"){
+              alert("A simulation hasn't been started yet.")
+            } else {
+              // Prevent any spam
+              document.getElementById("sim-start").setAttribute("disabled", "");
+              document.getElementById("sim-stop").setAttribute("disabled", "");
+              stopSim();
+              setTimeout(() => window.location.reload(), 5000);
+            }
+          };
+      </script>
+
+    <!-- Execute Editor Code -->
+    <button class="push hud-link" id="execute">Execute</button>
+    <script>
+      document.getElementById("execute").onclick = function(){
+        if(craft.getTaskInfo().state === "running"){
+          eval(editor.getValue());
+        } else {
+          alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
+        }
+      }
+    </script>
+
+  </div>
+
+  <!-- Google Maps Display -->
   <div id="map">
       <script>
         function icon(rotation, colour, scale){
@@ -75,89 +127,64 @@
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>
   </div>
-  <div id="error" class="abs"></div>
-  <svg id="hud" width=50% height=100% class="abs"></svg>
-  <div id="api" class="abs"><a href="api.js">api.js</a></div>
-  <div id="state" class="abs"></div>
-  <script>
-    setInterval(() => {
-      document.getElementById("state").innerHTML = "Name: " + craft.getTaskInfo().name + " State: " + craft.getTaskInfo().state;
-    }, 500);
-  </script>
-  <div id="start" class="abs">
-    <button id="sim-start">Start</button>
+  
+  <div id="info-panel">
+
+    <!-- Text Editor  -->
+    <div class="panel" id="editor"></div>
     <script>
-      document.getElementById("sim-start").onclick = function(){
-        if(craft.getTaskInfo().state !== "Not started"){
-          alert("A simulation is already running. Please wait until it has finished or stop it.")
-        } else {
-          // Prevent any spam
-          document.getElementById("sim-start").setAttribute("disabled", "");
-          document.getElementById("sim-stop").setAttribute("disabled", "");
-          startSim("station_keeping");
-          setTimeout(() => window.location.reload(), 7000);
-        }
-      }
-    </script>
-  </div>
-  <div id="stop" class="abs">
-    <button id="sim-stop">Stop</button>
-    <script>
-      document.getElementById("sim-stop").onclick = function(){
-        if(craft.getTaskInfo().state === "Not started"){
-          alert("A simulation hasn't been started yet.")
-        } else {
-          // Prevent any spam
-          document.getElementById("sim-start").setAttribute("disabled", "");
-          document.getElementById("sim-stop").setAttribute("disabled", "");
-          stopSim();
-          setTimeout(() => window.location.reload(), 5000);
-        }
-      };
-    </script>
-  </div>
-  <div id="timer" class="abs"></div>
-    <script>
-      setInterval(() => {
-        document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
-      }, 500);
-    </script>
-<div id="editor"></div>
-<div id="editor-controls" class="abs">
-  <button id="execute">Execute</button>
-  <script>
-    document.getElementById("execute").onclick = function(){
-      if(craft.getTaskInfo().state === "running"){
-        eval(editor.getValue());
+      var params = new URLSearchParams(window.location.search);
+      if(params.has("ide") && params.get("ide") === "false"){
+        document.getElementById("editor").setAttribute("show", "false");
+        document.getElementById("editor-controls").style.display = "none";
       } else {
-        alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
+        var editor = ace.edit("editor"); 
+        editor.session.setMode("ace/mode/javascript");
+        // Base64 encoded demo
+        if(params.has("code")){
+          editor.setValue(atob(params.get("code")));
+        }
       }
-    }
-  </script>
-</div>
-<script>
-  var params = new URLSearchParams(window.location.search);
-  if(params.has("ide") && params.get("ide") === "false"){
-    document.getElementById("editor").setAttribute("show", "false");
-    document.getElementById("editor-controls").style.display = "none";
-  } else {
-    var editor = ace.edit("editor"); 
-    editor.session.setMode("ace/mode/javascript");
-    // Base64 encoded demo
-    if(params.has("code")){
-      editor.setValue(atob(params.get("code")));
-    }
-  }
-</script>
-<img id="camera_stream" src="" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
-<script>
-  const re = /https?:\/\/(.*)\/hud/;
-  document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
-  var params = new URLSearchParams(window.location.search);
-  if(params.has("camera") && params.get("camera") === "false"){
-    document.getElementById("camera_stream").style.display = "none";
-  }
-</script>
+    </script>
+
+    <!-- Information Panel -->
+    <div class="panel">
+      <h2>Information panel</h2>
+      <p id="state"></p>
+      <script>
+        setInterval(() => {
+          document.getElementById("state").innerHTML = "Simulation Name: " + craft.getTaskInfo().name + "</p><p>Simulation State: " + craft.getTaskInfo().state;
+        }, 500);
+      </script>
+
+    <!-- Time Remaining -->
+      <p id="timer" ></p>
+        <script>
+          setInterval(() => {
+            document.getElementById("timer").innerHTML = "Time remaining: " + craft.getTaskInfo().remaining_time;
+          }, 500);
+        </script>
+
+      <div id="error" ></div>
+    </div>
+
+    <!-- Camera Stream -->
+    <div class="panel">
+      <img id="camera_stream" src="" onerror='this.style.display = "none"' />
+      <script>
+        const re = /https?:\/\/(.*)\/hud/;
+        document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+        var params = new URLSearchParams(window.location.search);
+        if(params.has("camera") && params.get("camera") === "false"){
+          document.getElementById("camera_stream").style.display = "none";
+        }
+      </script>
+  </div>
+  </div>
+
+
+  <!-- I don't know that we need this next part... -->
+  <!-- <svg id="hud" width=50% height=100% class="abs"></svg> -->
 </div>
 </body>
 </html>
