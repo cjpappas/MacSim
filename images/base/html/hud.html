@@ -2,11 +2,12 @@
 <meta charset="UTF-8">
 <head>
   <link rel="stylesheet" type="text/css" href="/style"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.3.0/rxjs.umd.min.js"></script>
+  <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <script src="./api.js"></script>
 </head>
 
@@ -26,48 +27,74 @@
 
     <!-- Start Simulation -->
     <button class="hud-link" id="sim-start">Start Simulation</button>
-      <script>
-        document.getElementById("sim-start").onclick = function(){
-          if(craft.getTaskInfo().state !== "Not started"){
-            alert("A simulation is already running. Please wait until it has finished or stop it.")
-          } else {
-            // Prevent any spam
-            document.getElementById("sim-start").setAttribute("disabled", "");
-            document.getElementById("sim-stop").setAttribute("disabled", "");
-            startSim("station_keeping");
-            setTimeout(() => window.location.reload(), 7000);
-          }
+    <script>
+      document.getElementById("sim-start").onclick = () => {
+        if(craft.getTaskInfo().state !== "Not started"){
+          alert("A simulation is already running. Please wait until it has finished or stop it.")
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          document.getElementById("sim-stop").removeAttribute("disabled");
+        } else {
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          startSim("station_keeping", craft).then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
         }
-      </script>
+      }
+    </script>
 
     <!-- Stop Simulation -->
     <button class="hud-link" id="sim-stop">Stop Simulation</button>
-      <script>
-          document.getElementById("sim-stop").onclick = function(){
-            if(craft.getTaskInfo().state === "Not started"){
-              alert("A simulation hasn't been started yet.")
-            } else {
-              // Prevent any spam
-              document.getElementById("sim-start").setAttribute("disabled", "");
-              document.getElementById("sim-stop").setAttribute("disabled", "");
-              stopSim();
-              setTimeout(() => window.location.reload(), 5000);
-            }
-          };
-      </script>
+    <script>
+      document.getElementById("sim-stop").onclick = function(){
+        if(craft.getTaskInfo().state === "Not started"){
+          alert("A simulation hasn't been started yet.");
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          document.getElementById("sim-start").removeAttribute("disabled");
+        } else {
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          stopSim().then(() => document.getElementById("sim-start").removeAttribute("disabled"));
+        }
+      };
+    </script>
 
     <!-- Execute Editor Code -->
     <button class="push hud-link" id="execute">Execute</button>
     <script>
       document.getElementById("execute").onclick = function(){
         if(craft.getTaskInfo().state === "running"){
-          eval(editor.getValue());
+          try {
+            eval(editor.getValue());
+          } catch (error) {
+            alert(error.message);
+          }
         } else {
           alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
         }
       }
     </script>
 
+    <!-- Share  -->
+    <button class="hud-link" id="share">Share</button>
+    <script>
+      document.getElementById("share").onclick = function(){
+      const program = editor.getValue();
+      if(program === ""){
+        alert("No code to share :(")
+      } else {
+        const encodedProgram = encodeURI(btoa(program));
+        const list = document.createElement("ul");
+        list.style["list-style-type"] = "none";
+        const local = document.createElement("li");
+        local.innerHTML = "Localhost <button onclick=\"navigator.clipboard.writeText('http://localhost/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
+        const macsim = document.createElement("li");
+        macsim.innerHTML = "MacSim (not working yet)<button disabled onclick=\"navigator.clipboard.writeText('http://macsim.duckdns.org/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
+        list.appendChild(local);
+        list.appendChild(macsim);
+        swal({
+          title: "Links",
+          content: list
+        });
+      }
+    }
+    </script>
   </div>
 
   <!-- Google Maps Display -->
@@ -88,9 +115,10 @@
           return "ws://" + re.exec(url)[1] + ":9090"
         }
 
-        const craft = init(getWebSocketAddress());
+        let craft = init(getWebSocketAddress());
         var map;
         var marker;
+        let simStarted = false;
 
         function initMap() {
           map = new google.maps.Map(document.getElementById('map'), {
@@ -133,6 +161,7 @@
     <!-- Text Editor  -->
     <div id="editor"></div>
     <script>
+
       var params = new URLSearchParams(window.location.search);
       if(params.has("ide") && params.get("ide") === "false"){
         document.getElementById("editor").setAttribute("show", "false");
@@ -177,6 +206,7 @@
         var params = new URLSearchParams(window.location.search);
         if(params.has("camera") && params.get("camera") === "false"){
           document.getElementById("camera_stream").style.display = "none";
+
         }
       </script>
   </div>

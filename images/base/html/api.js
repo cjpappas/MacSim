@@ -1,21 +1,18 @@
 // Documentation - https://github.com/cjpappas/MacSim/wiki/api
 const env = typeof window === "undefined" ? "node" : "broswer"
 let three;
-let webSocket;
 if(env === "node"){
   axios = require("axios");
   three = require("three");
-  webSocket = require("rxjs/webSocket").webSocket;
-  global.WebSocket = require("ws"); // Because StackOverflow told me too
+  ROSLIB = require("roslib");
 } else {
   three = THREE;
-  webSocket = rxjs.webSocket.webSocket;
 }
 
 const MS_TO_KNOTS = 1.94384;
 
 let connection;
-let data = {
+const initialData = {
     cur_pos: { heading: 0, lat: 0, lng: 0 },    
     gps_vel: { x: 0, y: 0 },
     goal_pos: undefined,
@@ -27,86 +24,105 @@ let data = {
     task: { name: "None", state: "Not started", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 },
     wind: { heading: 0, speed: 0 }
 };
+let data = JSON.parse(JSON.stringify(initialData)); // Deep copy
 
 const topics = {
-    "/vrx/debug/wind/direction": (msg) => {
-        data.wind.heading = msg.msg.data;
+    "/vrx/debug/wind/direction": {
+        onMsg: (msg) => data.wind.heading = msg.data,
+        msgType: "std_msgs/Float64"
     },
-    "/vrx/debug/wind/speed": (msg) => {
-        data.wind.speed = msg.msg.data;
+    "/vrx/debug/wind/speed": {
+        onMsg: (msg) => data.wind.speed = msg.data,
+        msgType: "std_msgs/Float64"
     },
-    "/vrx/station_keeping/goal": (msg) => {
-        var eu = new three.Euler();
-        var ex = new three.Quaternion(
-            msg.msg.pose.orientation.x, 
-            msg.msg.pose.orientation.y, 
-            msg.msg.pose.orientation.z, 
-            msg.msg.pose.orientation.w
-        );
-        eu.setFromQuaternion(ex);
-        data.goal_pos = {
-            lat: msg.msg.pose.position.latitude,
-            lng: msg.msg.pose.position.longitude,
-            heading: eu.z
-        };
+    "/vrx/station_keeping/goal": {
+        onMsg: (msg) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                msg.pose.orientation.x, 
+                msg.pose.orientation.y, 
+                msg.pose.orientation.z, 
+                msg.pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            data.goal_pos = {
+                lat: msg.pose.position.latitude,
+                lng: msg.pose.position.longitude,
+                heading: eu.z
+            };
+        },
+        msgType: "geographic_msgs/GeoPoseStamped"   
     },
-    "/vrx/task/info": (msg) => {
-        data.task = {
-            name: msg.msg.name,
-            state: msg.msg.state,
-            ready_time: msg.msg.ready_time.secs,
-            running_time: msg.msg.running_time.secs,
-            elapsed_time: msg.msg.elapsed_time.secs,
-            remaining_time: msg.msg.remaining_time.secs,
-            timed_out: msg.msg.timed_out,
-            score: msg.msg.score
-        }  
+    "/vrx/task/info": {
+        onMsg: (msg) => data.task = {
+            name: msg.name,
+            state: msg.state,
+            ready_time: msg.ready_time.secs,
+            running_time: msg.running_time.secs,
+            elapsed_time: msg.elapsed_time.secs,
+            remaining_time: msg.remaining_time.secs,
+            timed_out: msg.timed_out,
+            score: msg.score
+        },
+        msgType: "vrx_gazebo/Task"
     },
-    "/wamv/sensors/cameras/front_left_camera/image_raw": (msg) => {
-        data.images.front_left = {
-            height: msg.msg.height,
-            width: msg.msg.width,
-            encoding: msg.msg.encoding,
-            step: msg.msg.step,
-            data: msg.msg.data
-        }
+    "/wamv/sensors/cameras/front_left_camera/image_raw": {
+        onMsg: (msg) => data.images.front_left = {
+            height: msg.height,
+            width: msg.width,
+            encoding: msg.encoding,
+            step: msg.step,
+            data: msg.data
+        },
+        msgType: "sensor_msgs/Image"
     },
-    "/wamv/sensors/cameras/front_right_camera/image_raw": (msg) => {
-        data.images.front_right = {
-            height: msg.msg.height,
-            width: msg.msg.width,
-            encoding: msg.msg.encoding,
-            step: msg.msg.step,
-            data: msg.msg.data
-        }
+    "/wamv/sensors/cameras/front_right_camera/image_raw": {
+        onMsg: (msg) => data.images.front_right = {
+            height: msg.height,
+            width: msg.width,
+            encoding: msg.encoding,
+            step: msg.step,
+            data: msg.data
+        },
+        msgType: "sensor_msgs/Image"
     },
-    "/wamv/sensors/cameras/middle_right_camera/image_raw": (msg) => {
-        data.images.middle_right = {
-            height: msg.msg.height,
-            width: msg.msg.width,
-            encoding: msg.msg.encoding,
-            step: msg.msg.step,
-            data: msg.msg.data
-        }
+    "/wamv/sensors/cameras/middle_right_camera/image_raw": {
+        onMsg: (msg) => data.images.middle_right = {
+            height: msg.height,
+            width: msg.width,
+            encoding: msg.encoding,
+            step: msg.step,
+            data: msg.data
+        },
+        msgType: "sensor_msgs/Image"
     },
-    "/wamv/sensors/gps/gps/fix": (msg) => {
-        data.cur_pos.lat = msg.msg.latitude;
-        data.cur_pos.lng = msg.msg.longitude;
+    "/wamv/sensors/gps/gps/fix": {
+        onMsg: (msg) => {
+            data.cur_pos.lat = msg.latitude;
+            data.cur_pos.lng = msg.longitude;
+        },
+        msgType: "sensor_msgs/NavSatFix"
     },
-    "/wamv/sensors/gps/gps/fix_velocity": (msg) => {
-        data.gps_vel.x = msg.msg.vector.x * MS_TO_KNOTS, 
-        data.gps_vel.y = msg.msg.vector.y * MS_TO_KNOTS 
+    "/wamv/sensors/gps/gps/fix_velocity": {
+        onMsg: (msg) => {
+            data.gps_vel.x = msg.vector.x * MS_TO_KNOTS; 
+            data.gps_vel.y = msg.vector.y * MS_TO_KNOTS;
+        },
+        msgType: "geometry_msgs/Vector3Stamped" 
     },
-    "/wamv/sensors/imu/imu/data": (msg) => {
-        var eu = new three.Euler();
-        var ex = new three.Quaternion(
-            msg.msg.orientation.x, 
-            msg.msg.orientation.y, 
-            msg.msg.orientation.z, 
-            msg.msg.orientation.w
-        );
-        eu.setFromQuaternion(ex);
-        data.cur_pos.heading = eu.z;
+    "/wamv/sensors/imu/imu/data": {
+        onMsg: (msg) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                msg.orientation.x, 
+                msg.orientation.y, 
+                msg.orientation.z, 
+                msg.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            data.cur_pos.heading = eu.z;
+            },
+        msgType: "sensor_msgs/Imu"
     }
 };
 
@@ -116,18 +132,18 @@ const topics = {
  * @returns {Object} Contains functions to interact with simulation.
  */
 const init = (url, setup = undefined, act = undefined) => {
-    connection = new webSocket(url);
-    connection.subscribe(
-        (msg) => topics[msg.topic](msg),
-        (err) => console.log("Subscription error: " + err),
-        () => console.log("Websocket closed")
-    ); 
+    connection = new ROSLIB.Ros({ url })
+    connection.on("connection", () => console.log("Connected to rosbridge server!"));
+    connection.on("error", () => setTimeout(() => init(url, setup, act), 1000));
+    connection.on("close", () => console.log("Connection to rosbridge server closed."))
     Object.keys(topics).forEach((topic) => {
         if(env === "broswer" && !topic.includes("camera")){
-            connection.next({
-                op: "subscribe",
-                topic
+            const listener = new ROSLIB.Topic({
+                ros: connection,
+                name: topic,
+                messageType: topics[topic].msgType
             });
+            listener.subscribe((message) => topics[topic].onMsg(message));
         }
     });
     if(setup !== undefined) setup();
@@ -151,12 +167,7 @@ const init = (url, setup = undefined, act = undefined) => {
         rotateAnticlockwise,
         rotateClockwise,
         stop,
-        act: act === undefined ? () => {} : () => {
-            var interval = setInterval(() => {
-                act();
-                if(getTaskInfo().state === "finished") clearInterval(interval);
-            }, 1000)
-        }
+        act: act === undefined ? () => {} : act
     }
 }
 
@@ -166,67 +177,91 @@ const init = (url, setup = undefined, act = undefined) => {
  * Sets the angle of the left thruster.
  * @param {float} degrees - Number of degrees to turn the craft.
  */
-const setLeftThrusterAngle = (degrees) =>
-    connection.next({ 
-        op: "publish",
-        topic: "/wamv/thrusters/left_thrust_angle",
-        msg: { data: (degrees * Math.PI / 180) }
+const setLeftThrusterAngle = (degrees) => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/thrusters/left_thrust_angle",
+        msgType: "std_msgs/Float32"
     });
+    topic.publish(new ROSLIB.Message({
+        data: degrees * Math.PI / 180
+    }));
+}
 
 /**
  * Sets the angle of the right thruster.
  * @param {float} degrees - Number of degrees to turn the craft.
  */
-const setRightThrusterAngle = (degrees) =>
-    connection.next({ 
-        op: "publish",
-        topic: "/wamv/thrusters/right_thrust_angle",
-        msg: { data: (degrees * Math.PI / 180) }
+const setRightThrusterAngle = (degrees) => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/thrusters/right_thrust_angle",
+        msgType: "std_msgs/Float32"
     });
+    topic.publish(new ROSLIB.Message({
+        data: degrees * Math.PI / 180
+    }));
+}
 
 /**
  * Sets the angle of the lateral thruster.
  * @param {float} degrees - Number of degrees to turn the craft.
  */
-const setLateralThrusterAngle = (degrees) =>
-    connection.next({
-        op: "publish",
-        topic: "/wmav/thrusters/lateral_thrust_angle",
-        msg: { data: (degrees * Math.PI / 180) }
+const setLateralThrusterAngle = (degrees) => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/thrusters/lateral_thrust_angle",
+        msgType: "std_msgs/Float32"
     });
+    topic.publish(new ROSLIB.Message({
+        data: degrees * Math.PI / 180
+    }));
+}
 
 /**
  * Sets the power of the left thruster.
  * @param {float} strength - Thruster strength.
  */
-const setLeftThrusterPower = (strength) =>
-    connection.next({ 
-        op: "publish",
-        topic: "/wamv/thrusters/left_thrust_cmd",
-        msg: { data: strength }
+const setLeftThrusterPower = (strength) => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/thrusters/left_thrust_cmd",
+        msgType: "std_msgs/Float32"
     });
+    topic.publish(new ROSLIB.Message({
+        data: strength
+    }));
+}
 
 /**
  * Sets the power of the right thruster.
  * @param {float} strength - Thruster strength.
  */
-const setRightThrusterPower = (strength) =>
-    connection.next({ 
-        op: "publish",
-        topic: "/wamv/thrusters/right_thrust_cmd",
-        msg: { data: strength }
+const setRightThrusterPower = (strength) => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/thrusters/right_thrust_cmd",
+        msgType: "std_msgs/Float32"
     });
+    topic.publish(new ROSLIB.Message({
+        data: strength
+    }));
+}
 
 /**
  * Sets the power of the lateral thruster.
  * @param {float} strength - Thruster strength.
  */    
-const setLateralThrusterPower = (strength) =>
-    connection.next({
-        op: "publish",
-        topic: "/wamv/thrusters/lateral_thrust_cmd",
-        msg: { data: strength }
-    })
+const setLateralThrusterPower = (strength) => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/thrusters/lateral_thrust_cmd",
+        msgType: "std_msgs/Float32"
+    });
+    topic.publish(new ROSLIB.Message({
+        data: strength
+    }));
+}
 
 // Getters - so data can't be accessed directly
 
@@ -389,17 +424,22 @@ const sims = ["station_keeping"];
  * Sends a request to the server to start the requested simulation.
  * @param {string} type - The type of simulation to start.
  */
-const startSim = (type) => {
+const startSim = (type, craft) => {
     if(sims.includes(type)){
-        axios.post("/api/start_sim", { sim: type })
-          .catch((error) => console.log(error));
+        data.task.state = "initialising";
+        var interval = setInterval(() => {
+            craft.act();
+            if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") clearInterval(interval);
+        }, 1000);
+        return axios.post("/api/start_sim", { sim: type });
     }
 }
 
 /**
  * Sends a request to the server to stop the current running simulation.
  */
-const stopSim = () => axios.post("/api/stop_sim", {});
+const stopSim = () => 
+    axios.post("/api/stop_sim", {}).then(() => data = JSON.parse(JSON.stringify(initialData)));
 
 if(env === "node"){
   module.exports = { init, startSim, stopSim };

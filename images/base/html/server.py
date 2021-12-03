@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, send_from_directory, url_for
+from flask import Flask, request, send_from_directory
 import subprocess
 
 app = Flask(__name__, static_url_path="")
@@ -26,10 +26,11 @@ def start():
     if sim in sims.keys():
         # Need a virtual display to force gazebo to add Camera sensors and publish
         # https://github.com/PX4/PX4-containers/issues/198
-        subprocess.run(["source ~/vrx_ws/devel/setup.bash && (Xvfb :1 -screen 0 1600x1200x16 &) && export DISPLAY=:1.0 && roslaunch vrx_gazebo %s gui:=false"%(sims[sim])],
+        subprocess.run(["source ~/vrx_ws/devel/setup.bash && (Xvfb :1 -screen 0 1600x1200x16 &) && export DISPLAY=:1.0 && roslaunch vrx_gazebo %s gui:=false &"%(sims[sim])],
                                  executable="/bin/bash", shell=True)
-        return {"status": "Simulation started."}, 200
-    return {"status": "Simulation type not found"}, 404
+        print("done")
+        return {"status": "Simulation started."}
+    return {"status": "Simulation type not found"}
 
 @app.route("/api/stop_sim", methods=["POST"])
 def stop():
