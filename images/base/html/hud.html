@@ -25,6 +25,31 @@
     <!-- API.js Link -->
     <a class="hud-link" href="api.js">api.js</a>
 
+    <!-- Share  -->
+    <button class="hud-link" id="share">Share</button>
+    <script>
+      document.getElementById("share").onclick = function(){
+      const program = editor.getValue();
+      if(program === ""){
+        alert("No code to share :(")
+      } else {
+        const encodedProgram = encodeURI(btoa(program));
+        const list = document.createElement("ul");
+        list.style["list-style-type"] = "none";
+        const local = document.createElement("li");
+        local.innerHTML = "Localhost <button onclick=\"navigator.clipboard.writeText('http://localhost/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
+        const macsim = document.createElement("li");
+        macsim.innerHTML = "MacSim (not working yet)<button disabled onclick=\"navigator.clipboard.writeText('http://macsim.duckdns.org/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
+        list.appendChild(local);
+        list.appendChild(macsim);
+        swal({
+          title: "Links",
+          content: list
+        });
+      }
+    }
+    </script>
+
     <!-- Start Simulation -->
     <button class="hud-link" id="sim-start">Start Simulation</button>
     <script>
@@ -71,30 +96,7 @@
       }
     </script>
 
-    <!-- Share  -->
-    <button class="hud-link" id="share">Share</button>
-    <script>
-      document.getElementById("share").onclick = function(){
-      const program = editor.getValue();
-      if(program === ""){
-        alert("No code to share :(")
-      } else {
-        const encodedProgram = encodeURI(btoa(program));
-        const list = document.createElement("ul");
-        list.style["list-style-type"] = "none";
-        const local = document.createElement("li");
-        local.innerHTML = "Localhost <button onclick=\"navigator.clipboard.writeText('http://localhost/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
-        const macsim = document.createElement("li");
-        macsim.innerHTML = "MacSim (not working yet)<button disabled onclick=\"navigator.clipboard.writeText('http://macsim.duckdns.org/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
-        list.appendChild(local);
-        list.appendChild(macsim);
-        swal({
-          title: "Links",
-          content: list
-        });
-      }
-    }
-    </script>
+    
   </div>
 
   <!-- Google Maps Display -->
