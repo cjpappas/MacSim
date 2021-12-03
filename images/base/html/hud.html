@@ -201,17 +201,17 @@
 
     <!-- Camera Stream -->
     <div class="panel">
-      <img id="camera_stream" src="" onerror='this.style.display = "none"' />
+      <img id="camera_stream" src="" />
       <script>
         const re = /https?:\/\/(.*)\/hud/;
         document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
         var params = new URLSearchParams(window.location.search);
         if(params.has("camera") && params.get("camera") === "false"){
-          document.getElementById("camera_stream").style.display = "none";
+          document.getElementById("camera_stream").style.visibility = "hidden";
 
         }
       </script>
-  </div>
+    </div>
   </div>
 </div>
 </body>
