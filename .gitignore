@@ -7,3 +7,4 @@
 **/.DS_Store
 **/local_programs/scala_ws/project/
 **/local_programs/scala_ws/target/
+**/__pycache__/

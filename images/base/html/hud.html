@@ -1,93 +1,105 @@
 <html>
 <meta charset="UTF-8">
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.3.0/rxjs.umd.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/style"/>
+  <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <script src="./api.js"></script>
-  <style>
-    body {
-      font-family:Arial, Helvetica, sans-serif;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-evenly;
-      align-items: stretch;
-    }
-
-    #map {
-      flex-grow: 1;
-    }
-    #api {
-      top: 10px;
-      left: 100px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #timer {
-      top: 10px;
-      right: 20px;
-      font-size: 25px;
-      -webkit-text-fill-color: white; 
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #error {
-      top: 50px;
-      left: 10px;
-      font-size: 60px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: red;
-    }
-    #state {
-      top: 10px;
-      left: 300px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black; 
-    }
-    #start {
-      top: 10px;
-      left: 200px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #stop {
-      top: 10px;
-      left: 250px;
-      font-size: 25px;
-      -webkit-text-fill-color: white;
-      -webkit-text-stroke-width: 0.5px;
-      -webkit-text-stroke-color: black;
-    }
-    #editor {
-      flex-grow: 1;
-      height: auto;
-    }
-    #editor[show="false"]{
-      display: none;
-    }
-    #editor-controls {
-      right: 10;
-      top: 10;
-    }
-    a {
-      text-decoration: none;
-    }
-    .abs {
-      position: absolute;
-    }
-    </style>
 </head>
 
 <body>
+<div id="main-content">
+  <nav>
+    <a class="item" href="/">Team Boat</a>
+    <a class="push item" href="/">Home</a>
+    <a class="item" href="/hud">Simulation</a>
+    <a class="item" href="https://github.com/osrf/vrx/blob/master/README.md">Documentation</a>
+  </nav>
+  
+  <div id="control-panel">
+
+    <!-- API.js Link -->
+    <a class="hud-link" href="api.js">api.js</a>
+
+    <!-- Share  -->
+    <button class="hud-link" id="share">Share</button>
+    <script>
+      document.getElementById("share").onclick = function(){
+      const program = editor.getValue();
+      if(program === ""){
+        alert("No code to share :(")
+      } else {
+        const encodedProgram = encodeURI(btoa(program));
+        const list = document.createElement("ul");
+        list.style["list-style-type"] = "none";
+        const local = document.createElement("li");
+        local.innerHTML = "Localhost <button onclick=\"navigator.clipboard.writeText('http://localhost/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
+        const macsim = document.createElement("li");
+        macsim.innerHTML = "MacSim (not working yet)<button disabled onclick=\"navigator.clipboard.writeText('http://macsim.duckdns.org/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
+        list.appendChild(local);
+        list.appendChild(macsim);
+        swal({
+          title: "Links",
+          content: list
+        });
+      }
+    }
+    </script>
+
+    <!-- Start Simulation -->
+    <button class="hud-link" id="sim-start">Start Simulation</button>
+    <script>
+      document.getElementById("sim-start").onclick = () => {
+        if(craft.getTaskInfo().state !== "Not started"){
+          alert("A simulation is already running. Please wait until it has finished or stop it.")
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          document.getElementById("sim-stop").removeAttribute("disabled");
+        } else {
+          document.getElementById("sim-start").setAttribute("disabled", "");
+          startSim("station_keeping", craft).then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
+        }
+      }
+    </script>
+
+    <!-- Stop Simulation -->
+    <button class="hud-link" id="sim-stop">Stop Simulation</button>
+    <script>
+      document.getElementById("sim-stop").onclick = function(){
+        if(craft.getTaskInfo().state === "Not started"){
+          alert("A simulation hasn't been started yet.");
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          document.getElementById("sim-start").removeAttribute("disabled");
+        } else {
+          document.getElementById("sim-stop").setAttribute("disabled", "");
+          stopSim().then(() => document.getElementById("sim-start").removeAttribute("disabled"));
+        }
+      };
+    </script>
+
+    <!-- Execute Editor Code -->
+    <button class="push hud-link" id="execute">Execute</button>
+    <script>
+      document.getElementById("execute").onclick = function(){
+        if(craft.getTaskInfo().state === "running"){
+          try {
+            eval(editor.getValue());
+          } catch (error) {
+            alert(error.message);
+          }
+        } else {
+          alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
+        }
+      }
+    </script>
+
+    
+  </div>
+
+  <!-- Google Maps Display -->
   <div id="map">
       <script>
         function icon(rotation, colour, scale){
@@ -105,10 +117,10 @@
           return "ws://" + re.exec(url)[1] + ":9090"
         }
 
-        const craft = init(getWebSocketAddress());
-        // const craft = {};
+        let craft = init(getWebSocketAddress());
         var map;
         var marker;
+        let simStarted = false;
 
         function initMap() {
           map = new google.maps.Map(document.getElementById('map'), {
@@ -145,73 +157,62 @@
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>
   </div>
-  <div id="error" class="abs"></div>
-  <svg id="hud" width=50% height=100% class="abs"></svg>
-  <div id="api" class="abs"><a href="api.js">api.js</a></div>
-  <div id="state" class="abs"></div>
-  <script>
-    setInterval(() => {
-      document.getElementById("state").innerHTML = "Name: " + craft.getTaskInfo().name + " State: " + craft.getTaskInfo().state;
-    }, 500);
-  </script>
-  <div id="start" class="abs">
-    <button id="sim-start">Start</button>
+  
+  <div id="info-panel">
+
+    <!-- Text Editor  -->
+    <div id="editor"></div>
     <script>
-      document.getElementById("sim-start").onclick = function(){
-        // Prevent any spam
-        document.getElementById("sim-start").setAttribute("disabled", "");
-        document.getElementById("sim-stop").setAttribute("disabled", "");
-        startSim("station_keeping");
-        setTimeout(() => window.location.reload(), 7000);
+
+      var params = new URLSearchParams(window.location.search);
+      if(params.has("ide") && params.get("ide") === "false"){
+        document.getElementById("editor").setAttribute("show", "false");
+        document.getElementById("editor-controls").style.display = "none";
+      } else {
+        var editor = ace.edit("editor"); 
+        editor.session.setMode("ace/mode/javascript");
+        // Base64 encoded demo
+        if(params.has("code")){
+          editor.setValue(atob(params.get("code")));
+        }
       }
     </script>
+
+    <!-- Information Panel -->
+    <div class="panel">
+      <h2>Details</h2>
+      <p id="state"></p>
+      <script>
+        setInterval(() => {
+          document.getElementById("state").innerHTML = "<p><strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "</p>";
+        }, 500);
+      </script>
+
+    <!-- Time Remaining -->
+      <p id="timer" ></p>
+        <script>
+          setInterval(() => {
+            document.getElementById("timer").innerHTML = "<p><strong>Time remaining</strong>: " + craft.getTaskInfo().remaining_time+" <span style='font-size: 12px'>seconds</span></p>";
+          }, 500);
+        </script>
+
+      <div id="error" ></div>
+    </div>
+
+    <!-- Camera Stream -->
+    <div class="panel">
+      <img id="camera_stream" src="" onerror='this.style.display = "none"' />
+      <script>
+        const re = /https?:\/\/(.*)\/hud/;
+        document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+        var params = new URLSearchParams(window.location.search);
+        if(params.has("camera") && params.get("camera") === "false"){
+          document.getElementById("camera_stream").style.display = "none";
+
+        }
+      </script>
   </div>
-  <div id="stop" class="abs">
-    <button id="sim-stop">Stop</button>
-    <script>
-      document.getElementById("sim-stop").onclick = function(){
-        console.log("Firing stop-sim");
-        // Prevent any spam
-        document.getElementById("sim-start").setAttribute("disabled", "");
-        document.getElementById("sim-stop").setAttribute("disabled", "");
-        stopSim();
-        setTimeout(() => window.location.reload(), 5000);
-      };
-    </script>
   </div>
-  <div id="timer" class="abs"></div>
-    <script>
-      setInterval(() => {
-        document.getElementById("timer").innerHTML = craft.getTaskInfo().remaining_time;
-      }, 500);
-    </script>
-<div id="editor"></div>
-<div id="editor-controls" class="abs">
-  <button id="execute">Execute</button>
-  <script>
-    document.getElementById("execute").onclick = function(){
-      eval(editor.getValue());
-    }
-  </script>
 </div>
-<script>
-  var params = new URLSearchParams(window.location.search);
-  if(params.has("ide") && params.get("ide") === "false"){
-    document.getElementById("editor").setAttribute("show", "false");
-    document.getElementById("editor-controls").style.display = "none";
-  } else {
-    var editor = ace.edit("editor"); 
-    editor.session.setMode("ace/mode/javascript");
-  }
-</script>
-<img id="camera_stream" src="" width=300 height=300 style="position: absolute; left: 20; bottom: 20;" onerror='this.style.display = "none"' />
-<script>
-  const re = /https?:\/\/(.*)\/hud/;
-  document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
-  var params = new URLSearchParams(window.location.search);
-  if(params.has("camera") && params.get("camera") === "false"){
-    document.getElementById("camera_stream").style.display = "none";
-  }
-</script>
 </body>
 </html>
