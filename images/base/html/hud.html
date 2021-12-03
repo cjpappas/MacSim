@@ -13,10 +13,10 @@
 <body>
 <div id="main-content">
   <nav>
-    <a class="item" href="#">Team Boat</a>
+    <a class="item" href="/">Team Boat</a>
     <a class="push item" href="/">Home</a>
     <a class="item" href="/hud">Simulation</a>
-    <a class="item" href="#">Documentation</a>
+    <a class="item" href="https://github.com/osrf/vrx/blob/master/README.md">Documentation</a>
   </nav>
   
   <div id="control-panel">
@@ -131,7 +131,7 @@
   <div id="info-panel">
 
     <!-- Text Editor  -->
-    <div class="panel" id="editor"></div>
+    <div id="editor"></div>
     <script>
       var params = new URLSearchParams(window.location.search);
       if(params.has("ide") && params.get("ide") === "false"){
@@ -149,11 +149,11 @@
 
     <!-- Information Panel -->
     <div class="panel">
-      <h2>Information panel</h2>
+      <h2>Details</h2>
       <p id="state"></p>
       <script>
         setInterval(() => {
-          document.getElementById("state").innerHTML = "Simulation Name: " + craft.getTaskInfo().name + "</p><p>Simulation State: " + craft.getTaskInfo().state;
+          document.getElementById("state").innerHTML = "<p><strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "</p>";
         }, 500);
       </script>
 
@@ -161,7 +161,7 @@
       <p id="timer" ></p>
         <script>
           setInterval(() => {
-            document.getElementById("timer").innerHTML = "Time remaining: " + craft.getTaskInfo().remaining_time;
+            document.getElementById("timer").innerHTML = "<p><strong>Time remaining</strong>: " + craft.getTaskInfo().remaining_time+" <span style='font-size: 12px'>seconds</span></p>";
           }, 500);
         </script>
 
@@ -181,10 +181,6 @@
       </script>
   </div>
   </div>
-
-
-  <!-- I don't know that we need this next part... -->
-  <!-- <svg id="hud" width=50% height=100% class="abs"></svg> -->
 </div>
 </body>
 </html>

@@ -150,22 +150,25 @@ nav a:hover:after {
 
 #control-panel {
   width: 100%;
-  padding: 10px;
+  padding: 0;
   display: flex;
+  border-bottom: 4px solid white;
+  border-left: 4px solid white;
 }
 
 #map {
-  width: 70%;
+  width: 65%;
   height: 100%;
   order: 1;         
 }
 
 #info-panel {
   display: flex;
-  width: 29%;
+  width: 35%;
   background-color: #D6D2C4;
   height: 100%;
   flex-direction: column;
+  order: 2;
 }
 
 .panel {
@@ -194,7 +197,13 @@ nav a:hover:after {
   width: 10%;
   border: none;
   cursor: pointer;
-  margin-right: 2px;
+  margin-right: 4px;
+  transition: transform 0.3s;
+}
+
+.hud-link:hover {
+  background-color: #76232F;
+  transition: transform 0.3s;
 }
 
 #camera_stream {
@@ -203,7 +212,7 @@ nav a:hover:after {
 }
 
 #editor {
-  height: 50%;
+  height: 60%;
 }
 
 #editor[show="false"]{
