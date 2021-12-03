@@ -207,7 +207,7 @@ nav a:hover:after {
 }
 
 #camera_stream {
-  width: 100%;
+  width: auto;
   height: 100%;
 }
 

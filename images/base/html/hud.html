@@ -185,6 +185,10 @@
       <script>
         setInterval(() => {
           document.getElementById("state").innerHTML = "<p><strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "</p>";
+          if(craft.getTaskInfo().state == "ready"){
+            document.getElementById("camera_stream").style.visibility = "visible";
+            document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+          }
         }, 500);
       </script>
 
@@ -201,15 +205,19 @@
 
     <!-- Camera Stream -->
     <div class="panel">
-      <img id="camera_stream" src="" />
+      <img id="camera_stream" src="" style="visibility: hidden";/>
       <script>
         const re = /https?:\/\/(.*)\/hud/;
         document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
-        var params = new URLSearchParams(window.location.search);
-        if(params.has("camera") && params.get("camera") === "false"){
-          document.getElementById("camera_stream").style.visibility = "hidden";
 
-        }
+        //Check if simulation is ready, make camera visible and set source
+        var cameraCheck = setInterval(() => {
+          if(craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running"){
+            document.getElementById("camera_stream").style.visibility = "visible";
+            document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+            clearInterval(cameraCheck);
+          }
+        }, 1000);
       </script>
     </div>
   </div>
