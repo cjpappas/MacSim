@@ -45,6 +45,9 @@ docker run -itd \
     altmattr/simulation
 ```
 
+### Changing the Goal Location for Staion Keeping
+To change the goal location and heading, change the value in the `<goal_pose>` tags in `images/base/src/vrx/vrx_gazebo/worlds/stationkeeping_task.world.xacro`. Note if you move the position far enough away that it is outside the default zoom of the map, it may be a good idea to lower the zoom value in the `initMap` function of `hud.html`.
+
 ### Generating & Sharing Programs
 You can generate and share programs with other users through the use of base64 encoded strings. These strings can be provided through the `code` url parameter `http://.../hud?code=<base64_string>`. There are currently two options to generate these strings:
 
