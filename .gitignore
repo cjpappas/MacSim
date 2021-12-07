@@ -8,3 +8,6 @@
 **/local_programs/scala_ws/project/
 **/local_programs/scala_ws/target/
 **/__pycache__/
+**/node_modules/
+**/package-lock.json
+**/p5.min.js
