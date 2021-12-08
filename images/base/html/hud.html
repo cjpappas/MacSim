@@ -31,20 +31,38 @@
       document.getElementById("share").onclick = function(){
       const program = editor.getValue();
       if(program === ""){
-        alert("No code to share :(")
+        swal({
+          title: "No code to share :(",
+          icon: "error"
+        });
       } else {
         const encodedProgram = encodeURI(btoa(program));
-        const list = document.createElement("ul");
-        list.style["list-style-type"] = "none";
-        const local = document.createElement("li");
-        local.innerHTML = "Localhost <button onclick=\"navigator.clipboard.writeText('http://localhost/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
-        const macsim = document.createElement("li");
-        macsim.innerHTML = "MacSim (not working yet)<button disabled onclick=\"navigator.clipboard.writeText('http://macsim.duckdns.org/hud?code=" + encodedProgram + "');alert('Copied to clipboard!');\">Copy</button>";
-        list.appendChild(local);
-        list.appendChild(macsim);
+        const error = encodedProgram.length > 2000 ? "Your program is over the recommended 2000 characters. This may lead to issues with your link. If this occurs, please decode the code variable within the link manually." : "";
         swal({
-          title: "Links",
-          content: list
+          title: "Share program",
+          text: error,
+          icon: error === "" ? "info" : "warning",
+          buttons: {
+            localhost: {
+              text: "Localhost",
+              value: "localhost"
+            },
+            macsim: {
+              text: "MacSim",
+              value: "macsim"
+            }
+          }
+        }).then((value) => {
+          switch(value){
+            case "localhost":
+              navigator.clipboard.writeText(`http://localhost/hud?code=${encodedProgram}`);
+              swal("Copied to clipboard!", { icon: "success" });
+              break;
+            case "macsim":
+              navigator.clipboard.writeText(`http://macsim.duckdns.org/hud?code=${encodedProgram}`);
+              swal("Copied to clipboard!", { icon: "success" });
+              break;
+          }
         });
       }
     }
@@ -55,7 +73,10 @@
     <script>
       document.getElementById("sim-start").onclick = () => {
         if(craft.getTaskInfo().state !== "Not started"){
-          alert("A simulation is already running. Please wait until it has finished or stop it.")
+          swal({
+            icon: "error",
+            text: "A simulation is already running. Please wait until it has finished or stop it!"
+          });
           document.getElementById("sim-start").setAttribute("disabled", "");
           document.getElementById("sim-stop").removeAttribute("disabled");
         } else {
@@ -70,7 +91,10 @@
     <script>
       document.getElementById("sim-stop").onclick = function(){
         if(craft.getTaskInfo().state === "Not started"){
-          alert("A simulation hasn't been started yet.");
+          swal({
+            icon: "error",
+            text: "A simulation hasn't been started yet!"
+          });
           document.getElementById("sim-stop").setAttribute("disabled", "");
           document.getElementById("sim-start").removeAttribute("disabled");
         } else {
@@ -88,10 +112,17 @@
           try {
             eval(editor.getValue());
           } catch (error) {
-            alert(error.message);
+            swal({ 
+              icon: "error",
+              title: "Error executing code.",
+              text: error.message
+            });
           }
         } else {
-          alert("A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.")
+          swal({
+            icon: "error",
+            text: "A simulation isn't running or is starting up. Please wait until a simulation has started before executing code."
+          });
         }
       }
     </script>
