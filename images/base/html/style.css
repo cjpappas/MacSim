@@ -232,3 +232,13 @@ nav a:hover:after {
   -webkit-text-stroke-width: 0.5px;
   -webkit-text-stroke-color: red;
 }
+
+#console {
+  padding: 10;
+  font-size: 11;
+  width: "100%";
+  height: 70;
+  background-color: white;
+  color: black;
+  overflow: auto;
+}
