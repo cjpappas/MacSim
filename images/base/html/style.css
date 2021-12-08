@@ -237,8 +237,7 @@ nav a:hover:after {
   padding: 10;
   font-size: 11;
   width: "100%";
-  height: 70;
+  height: 31;
   background-color: white;
   color: black;
-  overflow: auto;
 }

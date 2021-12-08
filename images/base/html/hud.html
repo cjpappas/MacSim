@@ -215,7 +215,7 @@
       <!-- TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html -->
       <div id="console">[ Console ]<br /></div>
       <script>
-          !function(o){console.old=console.log,console.log=function(){var n,e,t="";for(e=0;e<arguments.length;e++)t+='<span class="log-'+typeof(n=arguments[e])+'">',"object"==typeof n&&"object"==typeof JSON&&"function"==typeof JSON.stringify?t+=JSON.stringify(n):t+=n,t+="</span>&nbsp;";o.innerHTML+=t+"<br>",console.old.apply(void 0,arguments)}}
+          !function(o){console.old=console.log,console.log=function(){var n,e,t="";for(e=0;e<arguments.length;e++)t+='<span class="log-'+typeof(n=arguments[e])+'">',"object"==typeof n&&"object"==typeof JSON&&"function"==typeof JSON.stringify?t+=JSON.stringify(n):t+=n,t+="</span>&nbsp;";o.innerHTML="[ Console ]<br/>"+t,console.old.apply(void 0,arguments)}}
           (document.getElementById("console"));
       </script>
       <h2>Details</h2>
