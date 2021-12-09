@@ -150,7 +150,6 @@ const init = (url, setup = undefined, act = () => {}) => {
     const actLoop = () => {
         if(getTaskInfo().state === "running"){
             var interval = setInterval(() => {
-                console.log("acting");
                 act();
                 if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
                     clearInterval(interval);
