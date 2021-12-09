@@ -131,7 +131,7 @@ const topics = {
  * @param {string} url - The url of the simualtion.
  * @returns {Object} Contains functions to interact with simulation.
  */
-const init = (url, setup = undefined, act = undefined) => {
+const init = (url, setup = undefined, act = () => {}) => {
     connection = new ROSLIB.Ros({ url })
     connection.on("connection", () => console.log("Connected to rosbridge server!"));
     connection.on("error", () => setTimeout(() => init(url, setup, act), 1000));
@@ -147,7 +147,20 @@ const init = (url, setup = undefined, act = undefined) => {
         }
     });
     if(setup !== undefined) setup();
-    return {
+    const actLoop = () => {
+        if(getTaskInfo().state === "running"){
+            var interval = setInterval(() => {
+                console.log("acting");
+                act();
+                if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        } else {
+            setTimeout(() => actLoop(), 500);
+        }
+    }
+    const craft = {
         getPosition,
         getGoalPosition,
         getGPSVelocity,
@@ -167,8 +180,10 @@ const init = (url, setup = undefined, act = undefined) => {
         rotateAnticlockwise,
         rotateClockwise,
         stop,
-        act: act === undefined ? () => {} : act
+        act: actLoop
     }
+    actLoop();
+    return craft;
 }
 
 // Immediate api
@@ -424,13 +439,8 @@ const sims = ["station_keeping"];
  * Sends a request to the server to start the requested simulation.
  * @param {string} type - The type of simulation to start.
  */
-const startSim = (type, craft) => {
+const startSim = (type) => {
     if(sims.includes(type)){
-        data.task.state = "initialising";
-        var interval = setInterval(() => {
-            craft.act();
-            if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") clearInterval(interval);
-        }, 1000);
         return axios.post("/api/start_sim", { sim: type });
     }
 }

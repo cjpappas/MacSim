@@ -81,7 +81,7 @@
           document.getElementById("sim-stop").removeAttribute("disabled");
         } else {
           document.getElementById("sim-start").setAttribute("disabled", "");
-          startSim("station_keeping", craft).then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
+          startSim("station_keeping").then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
         }
       }
     </script>
