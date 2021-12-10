@@ -156,18 +156,6 @@ const init = (url, setup = undefined, act = () => {}) => {
         }
     });
     if(setup !== undefined) setup();
-    const actLoop = () => {
-        if(getTaskInfo().state === "running"){
-            var interval = setInterval(() => {
-                act();
-                if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
-                    clearInterval(interval);
-                }
-            }, 1000);
-        } else {
-            setTimeout(() => actLoop(), 500);
-        }
-    }
     const craft = {
         getPosition,
         getVelocity,
@@ -190,6 +178,20 @@ const init = (url, setup = undefined, act = () => {}) => {
         rotateClockwise,
         stop,
         act
+    }
+    const actLoop = () => {
+        if(getTaskInfo().state === "running"){
+            var interval = setInterval(() => {
+                craft.act();
+                if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
+                    clearInterval(interval);
+                    // In case we stop the sim then start it again without refreshing
+                    setTimeout(() => actLoop(), 500);
+                }
+            }, 1000);
+        } else {
+            setTimeout(() => actLoop(), 500);
+        }
     }
     actLoop();
     return craft;

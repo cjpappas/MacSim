@@ -183,7 +183,7 @@
         setInterval(() => {
           marker.setPosition(polarToLatLng(craft.getPosition()));
           marker.setIcon(icon(craft.getVelocity().theta, "#FFFFFF", 1));
-          if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && craft.getTaskInfo().state === "ready"){
+          if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             goal.setPosition(polarToLatLng(craft.getGoalPosition()));
             goal.setIcon(icon(craft.getGoalVelocity().theta, "#05FF05", 0.5));
           }
