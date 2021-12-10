@@ -190,7 +190,7 @@ nav a:hover:after {
 .panel h3{
   color: #373A36;
   padding-left: 5px;
-  margin-top: 5px;
+  margin-top: 10px;
   margin-bottom: 0;
 }
 
@@ -211,7 +211,7 @@ nav a:hover:after {
 .panel-half h3{
   color: #373A36;
   padding-left: 5px;
-  margin-top: 0;
+  margin-top: 10px;
   }
 
 .panel-half p{
@@ -219,9 +219,6 @@ nav a:hover:after {
   padding-left: 5px;
   font-size: 16px;
 }
-
-
-
 
 .hud-link {
   background-color: #A6192E;
@@ -251,6 +248,7 @@ nav a:hover:after {
 
   height: 100%;
   width: 50%;
+  
 }
 
 #editor {
@@ -282,9 +280,10 @@ nav a:hover:after {
 #console-log-body {
   background: white;
   height: 70%;
-  width: 98%;
+  width: 100%;
   padding: 5px;
   margin-top: 0;
   border-top: 2px solid #76232F;
   border-bottom: 2px solid #76232F;
+  z-index: 100;
 }
