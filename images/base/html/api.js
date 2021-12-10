@@ -9,13 +9,12 @@ if(env === "node"){
   three = THREE;
 }
 
-const MS_TO_KNOTS = 1.94384;
-
 let connection;
 const initialData = {
-    cur_pos: { heading: 0, lat: 0, lng: 0 },    
-    gps_vel: { x: 0, y: 0 },
+    cur_pos: { r: 0, theta: 0 },    
+    cur_vel: { r: 0, theta: 0 },
     goal_pos: undefined,
+    goal_vel: undefined,
     images: {
         front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
@@ -25,6 +24,9 @@ const initialData = {
     wind: { heading: 0, speed: 0 }
 };
 let data = JSON.parse(JSON.stringify(initialData)); // Deep copy
+
+// Capture inital craft pos - Used for conversion to polar coords
+const referencePos = { lat: 0, lng: 0 }
 
 const topics = {
     "/vrx/debug/wind/direction": {
@@ -45,11 +47,8 @@ const topics = {
                 msg.pose.orientation.w
             );
             eu.setFromQuaternion(ex);
-            data.goal_pos = {
-                lat: msg.pose.position.latitude,
-                lng: msg.pose.position.longitude,
-                heading: eu.z
-            };
+            data.goal_pos = calcPolarCoords(msg.pose.position.latitude, msg.pose.position.longitude);
+            data.goal_vel = { r: 0, theta: eu.z }
         },
         msgType: "geographic_msgs/GeoPoseStamped"   
     },
@@ -98,15 +97,16 @@ const topics = {
     },
     "/wamv/sensors/gps/gps/fix": {
         onMsg: (msg) => {
-            data.cur_pos.lat = msg.latitude;
-            data.cur_pos.lng = msg.longitude;
+            if(referencePos.lat == referencePos.lng == 0){
+                referencePos = { lat: msg.latitude, lng: msg.longitude };
+            }
+            data.cur_pos = calcPolarCoords(msg.latitude, msg.longitude);
         },
         msgType: "sensor_msgs/NavSatFix"
     },
     "/wamv/sensors/gps/gps/fix_velocity": {
         onMsg: (msg) => {
-            data.gps_vel.x = msg.vector.x * MS_TO_KNOTS; 
-            data.gps_vel.y = msg.vector.y * MS_TO_KNOTS;
+            data.cur_vel.r = Math.sqrt(Math.pow(msg.vector.x, 2) + Math.pow(msg.vector.y, 2));
         },
         msgType: "geometry_msgs/Vector3Stamped" 
     },
@@ -120,8 +120,8 @@ const topics = {
                 msg.orientation.w
             );
             eu.setFromQuaternion(ex);
-            data.cur_pos.heading = eu.z;
-            },
+            data.cur_vel.theta = eu.z;
+        },
         msgType: "sensor_msgs/Imu"
     }
 };
@@ -161,8 +161,9 @@ const init = (url, setup = undefined, act = () => {}) => {
     }
     const craft = {
         getPosition,
+        getVelocity,
         getGoalPosition,
-        getGPSVelocity,
+        getGoalVelocity,
         getImages,
         getTaskInfo,
         getWindInfo,
@@ -277,38 +278,47 @@ const setLateralThrusterPower = (strength) => {
     }));
 }
 
-// Getters - so data can't be accessed directly
+// Getters
 
 /**
- * Returns the boat's current position.
+ * Returns the crafts's current position.
  * @returns {
- *     heading: float - current heading in radians,
- *     lat: float - current latitude,
- *     lng: float - current longitude
+ *     r: float - craft's current distance from reference point (initial location on load),
+ *     theta: float - craft's current angle, in radians from anticlockwise from east, from reference point (initial location on load)
  * }
  */
 const getPosition = () => data.cur_pos;
+
+/**
+ * Returns the boat's current velocity.
+ * @returns {
+ *     r: float - current speed (estimated in m/s) of the craft travelling at theta heading,
+ *     theta: float - current heading of the craft in radians from anticlockwise from east
+ * }
+ */
+const getVelocity = () => data.cur_vel;
 
 /**
  * STATION KEEPING SIMULATION ONLY
  * Returns the position of the current goal.
  * Returns undefined for other simulations.
  * @returns {
- *     lat: float - latitude of the goal,
- *     lng: float - longitude of the goal,
- *     heading: float - heading of the goal
+ *     r: float - goal's distance from reference point (initial location on load),
+ *     theta: float - goal angle in radians from anticlockwise from east
  * } 
  */
 const getGoalPosition = () => data.goal_pos;
 
 /**
- * Returns the esimated velocity of the craft.
+ * STATION KEEPING SIMULATION ONLY
+ * Returns the velocity of the current goal.
+ * Returns undefined for other simulations.
  * @returns {
- *     x: float - (m/s) in a north/south direction,
- *     y: float - (m/s) in a west/east direction
- * }
+ *     r: float - will always return 0 since the goal isn't moving,
+ *     theta: float - heading of the goal in radians from anticlockwise from east
+ * } 
  */
-const getGPSVelocity = () => data.gps_vel;
+const getGoalVelocity = () => data.goal_vel;
 
 /**
  * Return various pieces of informatino about the current task running in the simulation.
@@ -449,6 +459,22 @@ const startSim = (type) => {
  */
 const stopSim = () => 
     axios.post("/api/stop_sim", {}).then(() => data = JSON.parse(JSON.stringify(initialData)));
+
+
+// Utility funciton to translate our lat/lng to polar coords
+/**
+ * 
+ * @param {float} lat 
+ * @param {float} lng 
+ * @returns {
+ *     r: float - distance from reference point,
+ *     theta: float - angle from reference point
+ * }
+ */
+const calcPolarCoords = (lat, lng) => ({
+        r: Math.sqrt(Math.pow(lat - referencePos.lat, 2) + Math.pow(lng - referencePos.lng, 2)),
+        theta: Math.atan((lat - referencePos.lat) / (lng - referencePos.lng))
+});
 
 if(env === "node"){
   module.exports = { init, startSim, stopSim };
