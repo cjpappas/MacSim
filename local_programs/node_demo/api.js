@@ -467,7 +467,7 @@ const startSim = (type) => {
  * Sends a request to the server to stop the current running simulation.
  */
 const stopSim = () => 
-    axios.post(`${urls.server}/api/start_sim`, {})
+    axios.post(`${urls.server}/api/stop_sim`, {})
         .then(() => data = JSON.parse(JSON.stringify(initialData)));
 
 
