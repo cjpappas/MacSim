@@ -133,19 +133,18 @@
   <!-- Google Maps Display -->
   <div id="map">
       <script>
-        function icon(rotation, colour, scale){
-          return {path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
-                  fillOpacity: 1,
-                  fillColor: colour,
-                  scale:0.5*scale, 
-                  rotation:(rotation/(Math.PI))*-180
-                }
-        }
+        const icon = (rotation, colour, scale) => ({
+          path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
+          fillOpacity: 1,
+          fillColor: colour,
+          scale:0.5*scale, 
+          rotation:(rotation/(Math.PI))*-180
+        });
         
-        function getWebSocketAddress(){
+        const getAddress = () => {
           const url = window.location.href;
           const re = /https?:\/\/(.*)\/hud/;
-          return "ws://" + re.exec(url)[1] + ":9090"
+          return re.exec(url)[1]
         }
 
         const polarToLatLng = ({ r, theta }) => ({
@@ -153,7 +152,7 @@
           lng: r * Math.cos(theta)
         });
 
-        let craft = init(getWebSocketAddress());
+        let craft = init(getAddress());
         var map;
         var marker;
         let simStarted = false;
