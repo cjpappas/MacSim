@@ -133,22 +133,26 @@
   <!-- Google Maps Display -->
   <div id="map">
       <script>
-        function icon(rotation, colour, scale){
-          return {path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
-                  fillOpacity: 1,
-                  fillColor: colour,
-                  scale:0.5*scale, 
-                  rotation:(rotation/(Math.PI))*-180
-                }
-        }
+        const icon = (rotation, colour, scale) => ({
+          path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
+          fillOpacity: 1,
+          fillColor: colour,
+          scale:0.5*scale, 
+          rotation:(rotation/(Math.PI))*-180
+        });
         
-        function getWebSocketAddress(){
+        const getAddress = () => {
           const url = window.location.href;
           const re = /https?:\/\/(.*)\/hud/;
-          return "ws://" + re.exec(url)[1] + ":9090"
+          return re.exec(url)[1]
         }
 
-        let craft = init(getWebSocketAddress());
+        const polarToLatLng = ({ r, theta }) => ({
+          lat: r * Math.sin(theta),
+          lng: r * Math.cos(theta)
+        });
+
+        let craft = init(getAddress());
         var map;
         var marker;
         let simStarted = false;
@@ -177,11 +181,11 @@
         }
 
         setInterval(() => {
-          marker.setPosition(craft.getPosition());
-          marker.setIcon(icon(craft.getPosition().heading, "#FFFFFF", 1));
-          if(craft.getTaskInfo().name === "station_keeping"){
-            goal.setPosition(craft.getGoalPosition());
-            goal.setIcon(icon(craft.getGoalPosition().heading, "#05FF05", 0.5));
+          marker.setPosition(polarToLatLng(craft.getPosition()));
+          marker.setIcon(icon(craft.getVelocity().theta, "#FFFFFF", 1));
+          if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined){
+            goal.setPosition(polarToLatLng(craft.getGoalPosition()));
+            goal.setIcon(icon(craft.getGoalVelocity().theta, "#05FF05", 0.5));
           }
         }, 500);
       </script>

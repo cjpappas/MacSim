@@ -1,0 +1,16 @@
+{
+  "name": "node_demo",
+  "version": "1.0.0",
+  "description": "A demo node program to illustrate connection to macsim",
+  "main": "demo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Cameron Pappas (cameron.pappas@mq.edu.au)",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "roslib": "^1.1.0",
+    "three": "^0.135.0"
+  }
+}
