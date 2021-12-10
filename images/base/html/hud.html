@@ -129,7 +129,7 @@
 
     
   </div>
-
+  <div id="body-content">
   <!-- Google Maps Display -->
   <div id="map">
       <script>
@@ -194,7 +194,6 @@
     <!-- Text Editor  -->
     <div id="editor"></div>
     <script>
-
       var params = new URLSearchParams(window.location.search);
       if(params.has("ide") && params.get("ide") === "false"){
         document.getElementById("editor").setAttribute("show", "false");
@@ -209,20 +208,34 @@
       }
     </script>
 
-    <!-- Information Panel -->
+    <!-- Console Log -->
     <div class="panel">
-      <!-- Don't kill me for shoving the console in here lol -->
+      <div id="console"></div>
       <!-- TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html -->
-      <div id="console">[ Console ]<br /></div>
       <script>
-          !function(o){console.old=console.log,console.log=function(){var n,e,t="";for(e=0;e<arguments.length;e++)t+='<span class="log-'+typeof(n=arguments[e])+'">',"object"==typeof n&&"object"==typeof JSON&&"function"==typeof JSON.stringify?t+=JSON.stringify(n):t+=n,t+="</span>&nbsp;";o.innerHTML="[ Console ]<br/>"+t,console.old.apply(void 0,arguments)}}
+          !function(o){ console.old = console.log,
+                        console.log = function(){ 
+                          var n, e, t ="";
+                          for(e = 0; e < arguments.length; e++)
+                          t += '<p id="console-log-body" class="log-' + typeof( n = arguments[e]) 
+                            + '">', "object" == typeof n && "object" == typeof JSON && "function" == typeof JSON.stringify ? t 
+                            += JSON.stringify(n): t += n, t;
+                            o.innerHTML="<h3>Console Log</h3></p>"
+                            + t, console.old.apply(void 0,arguments)}}
           (document.getElementById("console"));
       </script>
-      <h2>Details</h2>
+    </div>
+
+    <!-- Camera Stream -->
+    <div class="panel-half">
+
+    <!-- Information Panel -->
+    <div class="panel">
+      <h3>Details</h3>
       <p id="state"></p>
       <script>
         setInterval(() => {
-          document.getElementById("state").innerHTML = "<p><strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "</p>";
+          document.getElementById("state").innerHTML = "<strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "";
           if(craft.getTaskInfo().state == "ready"){
             document.getElementById("camera_stream").style.visibility = "visible";
             document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
@@ -234,16 +247,15 @@
       <p id="timer" ></p>
         <script>
           setInterval(() => {
-            document.getElementById("timer").innerHTML = "<p><strong>Time remaining</strong>: " + craft.getTaskInfo().remaining_time+" <span style='font-size: 12px'>seconds</span></p>";
+            document.getElementById("timer").innerHTML = "<strong>Time remaining</strong>: " + craft.getTaskInfo().remaining_time+" <span style='font-size: 12px'>seconds</span>";
           }, 500);
         </script>
 
       <div id="error" ></div>
     </div>
-
-    <!-- Camera Stream -->
-    <div class="panel">
-      <img id="camera_stream" src="" style="visibility: hidden";/>
+    
+      <!-- Camera Stream -->
+      <img id="camera_stream" src="" style="visibility: hidden;";/>
       <script>
         const re = /https?:\/\/(.*)\/hud/;
         document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
@@ -258,6 +270,7 @@
         }, 1000);
       </script>
     </div>
+  </div>
   </div>
 </div>
 </body>

@@ -13,8 +13,8 @@ a {
  
 nav {
   width: 100%;
-  height: 20px;
-  gap: 10px;
+  height: 3%;
+  /* gap: 10px; */
   display: flex;
   justify-content: flex-end;
   background-color: #D6D2C4;
@@ -22,7 +22,6 @@ nav {
   height: 40px;
   text-align: center;
   overflow: hidden;
-  border-bottom: 4px solid white;
 }
 
 nav a {
@@ -116,9 +115,9 @@ nav a:hover:after {
 #main-content {
   display: flex;
   flex-wrap: wrap;
-  align-items: stretch;
   width: 100%;
   height: 100%;
+  position: relative;
 } 
 
 /***** LANDING PAGE CONTENT *****/
@@ -154,12 +153,24 @@ nav a:hover:after {
   display: flex;
   border-bottom: 4px solid white;
   border-left: 4px solid white;
+  height: 3%;
+  margin-top: 0;
+
+
+}
+
+#body-content {
+  display: flex;
+  width: 100%;
+  height: 91.5%;
+  overflow: hidden;
+  position: relative;
 }
 
 #map {
   width: 65%;
   height: 100%;
-  order: 1;         
+  order: 1; 
 }
 
 #info-panel {
@@ -176,25 +187,47 @@ nav a:hover:after {
   height: 30%;
 }
 
-.panel h2{
+.panel h3{
   color: #373A36;
-  padding-left: 10px;
+  padding-left: 5px;
+  margin-top: 10px;
+  margin-bottom: 0;
 }
 
 .panel p{
   color: #373A36;
-  padding-left: 10px;
-  font-size: 18px;
+  padding-left: 5px;
+  font-size: 16px;
+}
+
+.panel-half {
+  width: 100%;
+  height: 30%;
+  display: flex; 
+  justify-content: flex-end;
+
+}
+
+.panel-half h3{
+  color: #373A36;
+  padding-left: 5px;
+  margin-top: 10px;
+  }
+
+.panel-half p{
+  color: #373A36;
+  padding-left: 5px;
+  font-size: 16px;
 }
 
 .hud-link {
   background-color: #A6192E;
-  height: 40px;
+  height: 28px;
   text-align: center;
-  line-height: 40px;
-  font-size: 20px;
+  line-height: 28px;
+  font-size: 16px;
   color: white;
-  width: 10%;
+  width: 8%;
   border: none;
   cursor: pointer;
   margin-right: 4px;
@@ -206,9 +239,16 @@ nav a:hover:after {
   transition: transform 0.3s;
 }
 
-#camera_stream {
-  width: auto;
+#more-info{
   height: 100%;
+  width: 50%;
+}
+
+#camera_stream {
+
+  height: 100%;
+  width: 50%;
+  
 }
 
 #editor {
@@ -234,10 +274,16 @@ nav a:hover:after {
 }
 
 #console {
-  padding: 10;
-  font-size: 11;
-  width: "100%";
-  height: 31;
-  background-color: white;
-  color: black;
+  word-wrap: break-word;
+}
+
+#console-log-body {
+  background: white;
+  height: 70%;
+  width: 100%;
+  padding: 5px;
+  margin-top: 0;
+  border-top: 2px solid #76232F;
+  border-bottom: 2px solid #76232F;
+  z-index: 100;
 }
