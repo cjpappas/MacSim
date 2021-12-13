@@ -177,7 +177,8 @@ const init = (url, setup = undefined, act = () => {}) => {
         rotateAnticlockwise,
         rotateClockwise,
         stop,
-        act
+        act,
+        log
     }
     const actLoop = () => {
         if(getTaskInfo().state === "running"){
@@ -495,6 +496,20 @@ const generateUrls = (url) => {
         ws: `ws://${url}:9090`,
         stream: `http://${url}:8080`
     }
+}
+
+const log = (...args) => {
+    if(env === "broswer"){
+        // TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html
+        var n, i, output = "";
+        for(i = 0; i < args.length; i++){
+            n = args[i];
+            output += "object" == typeof n && "object" == typeof JSON && "function" == typeof JSON.stringify ? output 
+            += JSON.stringify(n): output += n, output;
+        }
+        document.getElementById("console-log-body").innerHTML = output;
+    }
+    console.log(args);
 }
 
 if(env === "node"){

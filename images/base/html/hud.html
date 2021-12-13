@@ -214,9 +214,12 @@
 
     <!-- Console Log -->
     <div class="panel">
-      <div id="console"></div>
+      <div id="console">
+        <h3>Craft Log</h3>
+        <p id="console-log-body">Output from craft.log output will appear here!</p>
+      </div>
       <!-- TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html -->
-      <script>
+      <!-- <script>
           !function(o){ console.old = console.log,
                         console.log = function(){ 
                           var n, e, t ="";
@@ -227,7 +230,7 @@
                             o.innerHTML="<h3>Console Log</h3></p>"
                             + t, console.old.apply(void 0,arguments)}}
           (document.getElementById("console"));
-      </script>
+      </script> -->
     </div>
 
     <!-- Camera Stream -->
