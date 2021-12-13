@@ -509,7 +509,7 @@ const log = (...args) => {
         }
         document.getElementById("console-log-body").innerHTML = output;
     }
-    console.log(args);
+    console.log(...args);
 }
 
 if(env === "node"){

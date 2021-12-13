@@ -156,18 +156,6 @@ const init = (url, setup = undefined, act = () => {}) => {
         }
     });
     if(setup !== undefined) setup();
-    const actLoop = () => {
-        if(getTaskInfo().state === "running"){
-            var interval = setInterval(() => {
-                act();
-                if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
-                    clearInterval(interval);
-                }
-            }, 1000);
-        } else {
-            setTimeout(() => actLoop(), 500);
-        }
-    }
     const craft = {
         getPosition,
         getVelocity,
@@ -189,7 +177,22 @@ const init = (url, setup = undefined, act = () => {}) => {
         rotateAnticlockwise,
         rotateClockwise,
         stop,
-        act
+        act,
+        log
+    }
+    const actLoop = () => {
+        if(getTaskInfo().state === "running"){
+            var interval = setInterval(() => {
+                craft.act();
+                if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
+                    clearInterval(interval);
+                    // In case we stop the sim then start it again without refreshing
+                    setTimeout(() => actLoop(), 500);
+                }
+            }, 1000);
+        } else {
+            setTimeout(() => actLoop(), 500);
+        }
     }
     actLoop();
     return craft;
@@ -493,6 +496,20 @@ const generateUrls = (url) => {
         ws: `ws://${url}:9090`,
         stream: `http://${url}:8080`
     }
+}
+
+const log = (...args) => {
+    if(env === "broswer"){
+        // TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html
+        var n, i, output = "";
+        for(i = 0; i < args.length; i++){
+            n = args[i];
+            output += "object" == typeof n && "object" == typeof JSON && "function" == typeof JSON.stringify ? output 
+            += JSON.stringify(n): output += n, output;
+        }
+        document.getElementById("console-log-body").innerHTML = output;
+    }
+    console.log(...args);
 }
 
 if(env === "node"){
