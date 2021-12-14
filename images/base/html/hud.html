@@ -125,6 +125,8 @@
       <option value="wayfinding">Wayfinding</option>
       <option value="perception">Object Localisation and Characterisation</option>
       <option value="wildlife">Wildlife Encounter and Avoid</option>
+      <option value="gymkhana">Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
+      <option value="scan_dock_deliver">Scan and Dock and Deliver</option>
     </select>
 
     <!-- Execute Editor Code -->
@@ -189,6 +191,12 @@
             case "wildlife":
               document.getElementById("sim-select").selectedIndex = 3;
               break;
+            case "gymkhana":
+              document.getElementById("sim-select").selectedIndex = 4;
+              break;
+            case "scan_dock_deliver":
+              document.getElementById("sim-select").selectedIndex = 5;
+              break;
             default:
               document.getElementById("sim-select").selectedIndex = 0;
               break;
@@ -215,12 +223,6 @@
             map,
             title: "craft",
           });
-          goal = new google.maps.Marker({
-            position: {lat: 0, lng: 0},
-            icon: icon(Math.PI/2, "#05FF05", 0.5),
-            map,
-            title: "goal",
-          });
         }
 
         setInterval(() => {
@@ -228,13 +230,17 @@
           marker.setPosition(polarToLatLng(craft.getPosition()));
           marker.setIcon(icon(craft.getVelocity().theta, "#FFFFFF", 1));
           if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
-            goal.setPosition(polarToLatLng(craft.getGoalPosition()));
-            goal.setIcon(icon(craft.getGoalVelocity().theta, "#05FF05", 0.5));
+            new google.maps.Marker({
+              position: polarToLatLng(craft.getGoalPosition()),
+              icon: icon(craft.getGoalVelocity(), "#05FF05", 0.5),
+              map,
+              title: "goal"
+            });
           } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             craft.getWayfindingPositions().forEach((position, index) => {
               new google.maps.Marker({
                 position: polarToLatLng(position.goal_pos),
-                icon: icon(position.goal_vel, "#05FF05", 0.5),
+                icon: icon(position.goal_vel.theta, "#05FF05", 0.5),
                 map,
                 title: `goal ${index}`
               });
@@ -243,7 +249,7 @@
             craft.getAnimalPositions().forEach((position) => {
               new google.maps.Marker({
                 position: polarToLatLng(position.animal_pos),
-                icon: icon(position.animal_vel, "#05FF05", 0.5),
+                icon: icon(position.animal_vel.theta, "#05FF05", 0.5),
                 map,
                 title: position.animal_type
               });

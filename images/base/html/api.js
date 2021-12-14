@@ -20,6 +20,8 @@ const initialData = {
     poses: undefined,
     // Task 4: Wildlife Encounter and Avoid
     animals: undefined,
+    // Task 5: Channel Navigation, Acoustic Beacon Localization and Obstacle Avoidance
+    blackbox_ping: undefined,
     images: {
         front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
@@ -43,6 +45,12 @@ const topics = {
         onMsg: (msg) => data.wind.speed = msg.data,
         msgType: "std_msgs/Float64"
     },
+    // "/vrx/scan_dock_deliver/color_sequence": {
+    //     onMsg: (msg) => {
+
+    //     },
+    //     msgType: "vrx_gazebo/ColorSequence" // Doesn't seem to be implemented?
+    // },
     "/vrx/station_keeping/goal": {
         onMsg: (msg) => {
             var eu = new three.Euler();
@@ -164,6 +172,14 @@ const topics = {
             data.cur_vel.theta = eu.z;
         },
         msgType: "sensor_msgs/Imu"
+    },
+    "/wamv/sensors/pingers/pinger/range_bearing": {
+        onMsg: (msg) => data.blackbox_ping = {
+            range: msg.range,
+            bearing: msg.bearing,
+            elevation: msg.elevation
+        },
+        msgType: "usv_msgs/RangeBearing"
     }
 };
 
@@ -203,6 +219,7 @@ const init = (url, setup = undefined, act = () => {}) => {
         getGoalVelocity,
         getWayfindingPositions,
         getAnimalPositions,
+        getBlackboxPing,
         getImages,
         getTaskInfo,
         getWindInfo,
@@ -213,7 +230,8 @@ const init = (url, setup = undefined, act = () => {}) => {
             setLeftThrusterPower,
             setRightThrusterPower,
             setLateralThrusterPower,
-            sendPerceptionGuess
+            sendPerceptionGuess,
+            fireBallShooter
         },
         moveForward,
         moveBackwards,
@@ -351,7 +369,7 @@ const sendPerceptionGuess = (lat, lng, objString) => {
         });
         topic.publish(new ROSLIB.Message({
             header: {
-                stamp:Date.now(),
+                stamp: Date.now(),
                 frame_id: objString
             },
             pose: {
@@ -365,6 +383,15 @@ const sendPerceptionGuess = (lat, lng, objString) => {
     } else {
         throw new Error(`Unknown object identifier: ${objString}`);
     }
+}
+
+const fireBallShooter = () => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/shooters/ball_shooter/fire",
+        msgType: "std_msgs/Empty"
+    });
+    topic.publish(new ROSLIB.Message({}));
 }
 
 // Getters
@@ -442,6 +469,18 @@ const getWayfindingPositions = () => data.poses;
  * }] 
  */
  const getAnimalPositions = () => data.animals;
+
+/**
+ * GYMKHANA (TASK 5) SIMULATION ONLY
+ * Returns the current ping from the blackbox.
+ * Returns undefined for other simulations.
+ * @returns {
+ *     range: float - Distance to ping
+ *     bearing: float - relative bearing of blackbox from USV (with noise)
+ *     elevation: float - relative elevation of blackbox from USV (with noise)
+ * } 
+ */
+const getBlackboxPing = () => data.blackbox_ping;
 
 /**
  * Return various pieces of informatino about the current task running in the simulation.

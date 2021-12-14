@@ -6,7 +6,9 @@ sims = {
     "station_keeping": "station_keeping.launch",
     "wayfinding": "wayfinding.launch",
     "perception": "perception_task.launch" ,
-    "wildlife": "wildlife.launch"
+    "wildlife": "wildlife.launch",
+    "gymkhana": "gymkhana.launch",
+    "scan_dock_deliver": "scan_dock_deliver.launch"
 }
 
 @app.route("/")
@@ -34,7 +36,7 @@ def start():
         subprocess.run(["source ~/vrx_ws/devel/setup.bash && (Xvfb :1 -screen 0 1600x1200x16 &) && export DISPLAY=:1.0 && roslaunch vrx_gazebo %s gui:=false &"%(sims[sim])],
                                  executable="/bin/bash", shell=True)
         return {"status": "Simulation started."}
-    return {"status": "Simulation type not found"}
+    return {"status": "Simulation type not found."}
 
 @app.route("/api/stop_sim", methods=["POST"])
 def stop():
