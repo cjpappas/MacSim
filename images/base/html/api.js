@@ -13,8 +13,11 @@ let connection;
 const initialData = {
     cur_pos: { r: 0, theta: 0 },    
     cur_vel: { r: 0, theta: 0 },
+    // Station Keeping
     goal_pos: undefined,
     goal_vel: undefined,
+    // Wayfinding
+    poses: undefined,
     images: {
         front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
@@ -65,6 +68,23 @@ const topics = {
             score: msg.score
         },
         msgType: "vrx_gazebo/Task"
+    },
+    "/vrx/wayfinding/waypoints": {
+        onMsg: (msg) => data.poses = msg.poses.map(pose => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                pose.orientation.x, 
+                pose.orientation.y, 
+                pose.orientation.z, 
+                pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            return {
+                goal_pos: calcPolarCoords(pose.position.latitude, pose.position.longitude),
+                goal_vel: { r: 0, theta: eu.z }
+            };
+        }),
+        msgType: "geographic_msgs/GeoPath"
     },
     "/wamv/sensors/cameras/front_left_camera/image_raw": {
         onMsg: (msg) => data.images.front_left = {
@@ -161,6 +181,7 @@ const init = (url, setup = undefined, act = () => {}) => {
         getVelocity,
         getGoalPosition,
         getGoalVelocity,
+        getWayfindingPositions,
         getImages,
         getTaskInfo,
         getWindInfo,
@@ -333,6 +354,23 @@ const getGoalPosition = () => data.goal_pos;
 const getGoalVelocity = () => data.goal_vel;
 
 /**
+ * WAYFINDING SIMULATION ONLY
+ * Returns the array of positions for the wayfinding task.
+ * Returns undefined for other simulations.
+ * @returns [{
+ *     goal_pos: {
+ *         r: float - goal's distance from reference point (initial location on load),
+ *         theta: float - goal angle in radians from anticlockwise from east
+ *     }
+ *     goal_vel: {
+ *         r: float - will always return 0 since the goal isn't moving,
+ *         theta: float - heading of the goal in radians from anticlockwise from east
+ *     }
+ * }] 
+ */
+const getWayfindingPositions = () => data.poses;
+
+/**
  * Return various pieces of informatino about the current task running in the simulation.
  * @returns {
  *     task: string - task name,
@@ -454,7 +492,14 @@ const stop = () => new Promise((resolve, reject) => {
     }
 });
 
-const sims = ["station_keeping"];
+const sims = [
+    "station_keeping",
+    "wayfinding",
+    "perception",
+    "wildlife",
+    "gymkhana",
+    "scan_dock_deliver"
+];
 
 /**
  * Sends a request to the server to start the requested simulation.
@@ -498,6 +543,7 @@ const generateUrls = (url) => {
     }
 }
 
+// Log function to display information on the hud as well as console.log
 const log = (...args) => {
     if(env === "broswer"){
         // TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html
