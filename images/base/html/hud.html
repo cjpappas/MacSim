@@ -124,6 +124,7 @@
       <option value="station_keeping" selected>Station Keeping</option>
       <option value="wayfinding">Wayfinding</option>
       <option value="perception">Object Localisation and Characterisation</option>
+      <option value="wildlife">Wildlife Encounter and Avoid</option>
     </select>
 
     <!-- Execute Editor Code -->
@@ -177,16 +178,19 @@
         const setSelectValue = () => {
           switch(craft.getTaskInfo().name){
             case "station_keeping":
-              document.getElementById("sim-select").selectedIndex = "0";
+              document.getElementById("sim-select").selectedIndex = 0;
               break;
             case "wayfinding":
-              document.getElementById("sim-select").selectedIndex = "1";
+              document.getElementById("sim-select").selectedIndex = 1;
               break;
             case "perception":
-              document.getElementById("sim-select").selectedIndex = "2";
+              document.getElementById("sim-select").selectedIndex = 2;
+              break;
+            case "wildlife":
+              document.getElementById("sim-select").selectedIndex = 3;
               break;
             default:
-              document.getElementById("sim-select").selectedIndex = "0";
+              document.getElementById("sim-select").selectedIndex = 0;
               break;
           }
         }
@@ -235,10 +239,18 @@
                 title: `goal ${index}`
               });
             });
+          } else if(craft.getTaskInfo().name === "wildlife" && craft.getAnimalPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            craft.getAnimalPositions().forEach((position) => {
+              new google.maps.Marker({
+                position: polarToLatLng(position.animal_pos),
+                icon: icon(position.animal_vel, "#05FF05", 0.5),
+                map,
+                title: position.animal_type
+              });
+            });
           }
         }, 500);
-
-        setTimeout(() => setSelectValue(), 1000);
+        setTimeout(() => setSelectValue(), 3500);
       </script>
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>

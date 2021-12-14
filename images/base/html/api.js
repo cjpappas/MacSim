@@ -88,7 +88,7 @@ const topics = {
         }),
         msgType: "geographic_msgs/GeoPath"
     },
-    "/vrx/wildlife/animals": {
+    "/vrx/wildlife/animals/poses": {
         onMsg: (msg) => data.animals = msg.poses.map((pose) => {
             var eu = new three.Euler();
             var ex = new three.Quaternion(
@@ -101,7 +101,7 @@ const topics = {
             return {
                 animal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
                 animal_vel: { r: 0, theta: eu.z }, // This might be wrong since animals can move, but will leave as is for now
-                animal_type: msg.header.frame_id
+                animal_type: pose.header.frame_id
             }
         }),
         msgType: "geographic_msgs/GeoPath"
@@ -202,6 +202,7 @@ const init = (url, setup = undefined, act = () => {}) => {
         getGoalPosition,
         getGoalVelocity,
         getWayfindingPositions,
+        getAnimalPositions,
         getImages,
         getTaskInfo,
         getWindInfo,
@@ -387,7 +388,7 @@ const getPosition = () => data.cur_pos;
 const getVelocity = () => data.cur_vel;
 
 /**
- * STATION KEEPING SIMULATION ONLY
+ * STATION KEEPING (TASK 1) SIMULATION ONLY
  * Returns the position of the current goal.
  * Returns undefined for other simulations.
  * @returns {
@@ -398,7 +399,7 @@ const getVelocity = () => data.cur_vel;
 const getGoalPosition = () => data.goal_pos;
 
 /**
- * STATION KEEPING SIMULATION ONLY
+ * STATION KEEPING (TASK 1) SIMULATION ONLY
  * Returns the velocity of the current goal.
  * Returns undefined for other simulations.
  * @returns {
@@ -409,7 +410,7 @@ const getGoalPosition = () => data.goal_pos;
 const getGoalVelocity = () => data.goal_vel;
 
 /**
- * WAYFINDING SIMULATION ONLY
+ * WAYFINDING (TASK 2) SIMULATION ONLY
  * Returns the array of positions for the wayfinding task.
  * Returns undefined for other simulations.
  * @returns [{
@@ -424,6 +425,23 @@ const getGoalVelocity = () => data.goal_vel;
  * }] 
  */
 const getWayfindingPositions = () => data.poses;
+
+/**
+ * WILDLIFE (TASK 4) SIMULATION ONLY
+ * Returns the array of positions for the wayfinding task.
+ * Returns undefined for other simulations.
+ * @returns [{
+ *     goal_pos: {
+ *         r: float - goal's distance from reference point (initial location on load),
+ *         theta: float - goal angle in radians from anticlockwise from east
+ *     }
+ *     goal_vel: {
+ *         r: float - will always return 0 since the goal isn't moving,
+ *         theta: float - heading of the goal in radians from anticlockwise from east
+ *     }
+ * }] 
+ */
+ const getAnimalPositions = () => data.animals;
 
 /**
  * Return various pieces of informatino about the current task running in the simulation.
