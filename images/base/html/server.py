@@ -4,7 +4,8 @@ import subprocess
 app = Flask(__name__, static_url_path="")
 sims = { 
     "station_keeping": "station_keeping.launch",
-    "wayfinding": "wayfinding.launch" 
+    "wayfinding": "wayfinding.launch",
+    "perception": "perception_task.launch" 
 }
 
 @app.route("/")

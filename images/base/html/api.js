@@ -191,7 +191,8 @@ const init = (url, setup = undefined, act = () => {}) => {
             setLateralThrusterAngle,
             setLeftThrusterPower,
             setRightThrusterPower,
-            setLateralThrusterPower
+            setLateralThrusterPower,
+            sendPerceptionGuess
         },
         moveForward,
         moveBackwards,
@@ -309,6 +310,40 @@ const setLateralThrusterPower = (strength) => {
     topic.publish(new ROSLIB.Message({
         data: strength
     }));
+}
+
+const sendPerceptionGuess = (lat, lng, objString) => {
+    // List of IDs from https://robonation.org/app/uploads/sites/2/2021/09/VirtualRobotX2022_Task-Descriptions_v1.0.pdf
+    const identifiers = [
+        "mb_marker_buoy_black",
+        "mb_marker_buoy_green",
+        "mb_marker_buoy_red",
+        "mb_marker_buoy_white",
+        "mb_round_buoy_black",
+        "mb_round_buoy_orange"
+    ]
+    if(objString in identifiers){
+        const topic = new ROSLIB.Topic({
+            ros: connection,
+            name: "/vrx/perception/landmark",
+            msgType: "geographic_msgs/GeoPoseStamped"
+        });
+        topic.publish(new ROSLIB.Message({
+            header: {
+                stamp:Date.now(),
+                frame_id: objString
+            },
+            pose: {
+                position: {
+                    latitude: lat,
+                    longitude: lng,
+                    altitude: 0.0
+                }
+            }
+        }));
+    } else {
+        throw new Error(`Unknown object identifier: ${objString}`);
+    }
 }
 
 // Getters
