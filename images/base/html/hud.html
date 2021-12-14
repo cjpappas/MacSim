@@ -81,7 +81,9 @@
           document.getElementById("sim-stop").removeAttribute("disabled");
         } else {
           document.getElementById("sim-start").setAttribute("disabled", "");
-          startSim("station_keeping").then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
+          const select = document.getElementById("sim-select");
+          startSim(select.options[select.selectedIndex].value)
+            .then(() => document.getElementById("sim-stop").removeAttribute("disabled"));
         }
       }
     </script>
@@ -103,6 +105,12 @@
         }
       };
     </script>
+
+    <!-- Select simulation -->
+    <select name="sim-type" id="sim-select">
+      <option value="station_keeping" selected>Station Keeping</option>
+      <option value="wayfinding">Wayfinding</option>
+    </select>
 
     <!-- Execute Editor Code -->
     <button class="push hud-link" id="execute">Execute</button>
@@ -152,6 +160,20 @@
           lng: r * Math.cos(theta)
         });
 
+        const setSelectValue = () => {
+          switch(craft.getTaskInfo().name){
+            case "station_keeping":
+              document.getElementById("sim-select").selectedIndex = "0";
+              break;
+            case "wayfinding":
+              document.getElementById("sim-select").selectedIndex = "1";
+              break;
+            default:
+              document.getElementById("sim-select").selectedIndex = "0";
+              break;
+          }
+        }
+
         let craft = init(getAddress());
         var map;
         var marker;
@@ -181,13 +203,25 @@
         }
 
         setInterval(() => {
+          // Set position of craft
           marker.setPosition(polarToLatLng(craft.getPosition()));
           marker.setIcon(icon(craft.getVelocity().theta, "#FFFFFF", 1));
           if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             goal.setPosition(polarToLatLng(craft.getGoalPosition()));
             goal.setIcon(icon(craft.getGoalVelocity().theta, "#05FF05", 0.5));
+          } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            craft.getWayfindingPositions().forEach((position, index) => {
+              new google.maps.Marker({
+                position: polarToLatLng(position.goal_pos),
+                icon: icon(position.goal_vel, "#05FF05", 0.5),
+                map,
+                title: `goal ${index}`
+              });
+            });
           }
         }, 500);
+
+        setTimeout(() => setSelectValue(), 1000);
       </script>
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>

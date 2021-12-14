@@ -70,17 +70,17 @@ const topics = {
         msgType: "vrx_gazebo/Task"
     },
     "/vrx/wayfinding/waypoints": {
-        onMsg: (msg) => data.poses = msg.poses.map(pose => {
+        onMsg: (msg) => data.poses = msg.poses.map((pose) => {
             var eu = new three.Euler();
             var ex = new three.Quaternion(
-                pose.orientation.x, 
-                pose.orientation.y, 
-                pose.orientation.z, 
-                pose.orientation.w
+                pose.pose.orientation.x, 
+                pose.pose.orientation.y, 
+                pose.pose.orientation.z, 
+                pose.pose.orientation.w
             );
             eu.setFromQuaternion(ex);
             return {
-                goal_pos: calcPolarCoords(pose.position.latitude, pose.position.longitude),
+                goal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
                 goal_vel: { r: 0, theta: eu.z }
             };
         }),
