@@ -13,11 +13,13 @@ let connection;
 const initialData = {
     cur_pos: { r: 0, theta: 0 },    
     cur_vel: { r: 0, theta: 0 },
-    // Station Keeping
+    // Task 1: Station Keeping
     goal_pos: undefined,
     goal_vel: undefined,
-    // Wayfinding
+    // Task 2: Wayfinding
     poses: undefined,
+    // Task 4: Wildlife Encounter and Avoid
+    animals: undefined,
     images: {
         front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
@@ -83,6 +85,24 @@ const topics = {
                 goal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
                 goal_vel: { r: 0, theta: eu.z }
             };
+        }),
+        msgType: "geographic_msgs/GeoPath"
+    },
+    "/vrx/wildlife/animals": {
+        onMsg: (msg) => data.animals = msg.poses.map((pose) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                pose.pose.orientation.x, 
+                pose.pose.orientation.y, 
+                pose.pose.orientation.z, 
+                pose.pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            return {
+                animal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
+                animal_vel: { r: 0, theta: eu.z }, // This might be wrong since animals can move, but will leave as is for now
+                animal_type: msg.header.frame_id
+            }
         }),
         msgType: "geographic_msgs/GeoPath"
     },

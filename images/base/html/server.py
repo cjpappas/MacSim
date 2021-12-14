@@ -5,7 +5,8 @@ app = Flask(__name__, static_url_path="")
 sims = { 
     "station_keeping": "station_keeping.launch",
     "wayfinding": "wayfinding.launch",
-    "perception": "perception_task.launch" 
+    "perception": "perception_task.launch" ,
+    "wildlife": "wildlife.launch"
 }
 
 @app.route("/")
