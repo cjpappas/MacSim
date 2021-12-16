@@ -239,6 +239,11 @@ nav a:hover:after {
   transition: transform 0.3s;
 }
 
+.hud-link-disabled {
+  cursor: wait;
+  background-color: #76232F;
+}
+
 #more-info{
   height: 100%;
   width: 50%;
