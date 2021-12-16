@@ -71,7 +71,10 @@
     <!-- Start Simulation -->
     <button class="hud-link" id="sim-start">Start Simulation</button>
     <script>
+      var started = false;
       document.getElementById("sim-start").onclick = () => {
+        document.getElementById("sim-start").classList.add("hud-link-disabled");
+        started = true;
         if(craft.getTaskInfo().state !== "Not started"){
           swal({
             icon: "error",
@@ -90,6 +93,8 @@
     <button class="hud-link" id="sim-stop">Stop Simulation</button>
     <script>
       document.getElementById("sim-stop").onclick = function(){
+        started = false;
+        document.getElementById("sim-stop").classList.add("hud-link-disabled");
         if(craft.getTaskInfo().state === "Not started"){
           swal({
             icon: "error",
@@ -240,12 +245,10 @@
           document.getElementById("state").innerHTML = "<strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "";
           
           // Additional check for button logic in case of page refresh
-          if(craft.getTaskInfo().state == "Not started"){
+          if(craft.getTaskInfo().state == "Not started" && started == false){
             document.getElementById("sim-stop").classList.add("hud-link-disabled");
             document.getElementById("execute").classList.add("hud-link-disabled");
             document.getElementById("sim-start").classList.remove("hud-link-disabled");
-            // document.getElementById("camera_stream").style.visibility = "visible";
-            // document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
           }
           if(craft.getTaskInfo().state == "initial" ||
              craft.getTaskInfo().state == "ready"   || 
