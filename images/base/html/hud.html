@@ -71,32 +71,20 @@
     <!-- Start Simulation -->
     <button class="hud-link" id="sim-start">Start Simulation</button>
     <script>
+      var started = false;
       document.getElementById("sim-start").onclick = () => {
+        document.getElementById("sim-start").classList.add("hud-link-disabled");
+        started = true;
         if(craft.getTaskInfo().state !== "Not started"){
           swal({
             icon: "error",
             text: "A simulation is already running. Please wait until it has finished or stop it!"
           });
-          document.getElementById("sim-start").setAttribute("disabled", "");
-          document.getElementById("sim-stop").removeAttribute("disabled");
+          document.getElementById("sim-start").classList.add("hud-link-disabled");
+          document.getElementById("sim-stop").classList.remove("hud-link-disabled");
         } else {
-          document.getElementById("sim-start").setAttribute("disabled", "");
-          const select = document.getElementById("sim-select");
-          startSim(select.options[select.selectedIndex].value)
-            .then(() => {
-              document.getElementById("sim-stop").removeAttribute("disabled");
-              // If perception, make camera stream the main thing instead of map
-              if(select.selectedIndex === 2){
-                const setupStream = () => {
-                  if(craft.getTaskInfo().state === "running"){
-                    document.getElementById("map").innerHTML = `<img width="100%" height="100%" src="${urls.stream}/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw"/>`
-                  } else {
-                    setTimeout(() => setupStream(), 500);
-                  }
-                }
-                setupStream();
-              }
-            });
+          document.getElementById("sim-start").classList.add("hud-link-disabled");
+          startSim("station_keeping").then(() => document.getElementById("sim-stop").classList.remove("hud-link-disabled"));
         }
       }
     </script>
@@ -105,16 +93,20 @@
     <button class="hud-link" id="sim-stop">Stop Simulation</button>
     <script>
       document.getElementById("sim-stop").onclick = function(){
+        started = false;
+        document.getElementById("sim-stop").classList.add("hud-link-disabled");
         if(craft.getTaskInfo().state === "Not started"){
           swal({
             icon: "error",
             text: "A simulation hasn't been started yet!"
           });
-          document.getElementById("sim-stop").setAttribute("disabled", "");
-          document.getElementById("sim-start").removeAttribute("disabled");
+          document.getElementById("sim-stop").classList.add("hud-link-disabled");
+          document.getElementById("sim-start").classList.remove("hud-link-disabled");
+          
         } else {
-          document.getElementById("sim-stop").setAttribute("disabled", "");
-          stopSim().then(() => document.getElementById("sim-start").removeAttribute("disabled"));
+          document.getElementById("sim-stop").classList.add("hud-link-disabled");
+          document.getElementById("execute").classList.add("hud-link-disabled");
+          stopSim().then(() => document.getElementById("sim-start").classList.remove("hud-link-disabled"));
         }
       };
     </script>
@@ -299,9 +291,19 @@
       <script>
         setInterval(() => {
           document.getElementById("state").innerHTML = "<strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "";
-          if(craft.getTaskInfo().state == "ready" && craft.getTaskInfo().name !== "perception"){
-            document.getElementById("camera_stream").style.visibility = "visible";
-            document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+          
+          // Additional check for button logic in case of page refresh
+          if(craft.getTaskInfo().state == "Not started" && started == false){
+            document.getElementById("sim-stop").classList.add("hud-link-disabled");
+            document.getElementById("execute").classList.add("hud-link-disabled");
+            document.getElementById("sim-start").classList.remove("hud-link-disabled");
+          }
+          if(craft.getTaskInfo().state == "initial" ||
+             craft.getTaskInfo().state == "ready"   || 
+             craft.getTaskInfo().state == "running"){
+              document.getElementById("execute").classList.remove("hud-link-disabled");
+              document.getElementById("sim-stop").classList.remove("hud-link-disabled");
+              document.getElementById("sim-start").classList.add("hud-link-disabled");
           }
         }, 500);
       </script>
