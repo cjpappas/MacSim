@@ -182,6 +182,10 @@ nav a:hover:after {
   order: 2;
 }
 
+select {
+  border: 2px solid #A6192E;
+}
+
 .panel {
   width: 100%;
   height: 30%;
