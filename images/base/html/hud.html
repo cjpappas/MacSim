@@ -120,9 +120,31 @@
       <option value="gymkhana">Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
       <option value="scan_dock_deliver">Scan and Dock and Deliver</option>
     </select>
+    <!-- Toggle view -->
+    <button class="push hud-link" id="toggle-view">Toggle View</button>
+    <script>
+      document.getElementById("toggle-view").onclick = function(){
+        
+        var cam = document.getElementById("camera_stream");
+        var map = document.getElementById("map");
+
+        if(cam.style.width == "50%"){
+          cam.style.width = "65%";
+          map.style.width = "100%";
+          document.getElementById("body-content").append(cam);
+          document.getElementById("bottom-panel").append(map);
+        } else {
+          cam.style.width = "50%";
+          map.style.width = "65%";
+          document.getElementById("body-content").append(map);
+          document.getElementById("bottom-panel").append(cam);
+        }
+      };
+    </script>
+
 
     <!-- Execute Editor Code -->
-    <button class="push hud-link" id="execute">Execute</button>
+    <button class="hud-link" id="execute">Execute</button>
     <script>
       document.getElementById("execute").onclick = function(){
         if(craft.getTaskInfo().state === "running"){
@@ -281,8 +303,7 @@
       </div>
     </div>
 
-    <!-- Camera Stream -->
-    <div class="panel-half">
+    <div id="bottom-panel" class="panel-half">
 
     <!-- Information Panel -->
     <div class="panel">
