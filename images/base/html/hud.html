@@ -75,6 +75,7 @@
       document.getElementById("sim-start").onclick = () => {
         document.getElementById("sim-start").classList.add("hud-link-disabled");
         started = true;
+        // check if sim is already running and throw error accordingly
         if(craft.getTaskInfo().state !== "Not started"){
           swal({
             icon: "error",
@@ -84,7 +85,10 @@
           document.getElementById("sim-stop").classList.remove("hud-link-disabled");
         } else {
           document.getElementById("sim-start").classList.add("hud-link-disabled");
-          startSim("station_keeping").then(() => document.getElementById("sim-stop").classList.remove("hud-link-disabled"));
+
+          // choose the selected sim to run 
+          const select = document.getElementById("sim-select");
+          startSim(select.options[select.selectedIndex].value)
         }
       }
     </script>
@@ -95,6 +99,8 @@
       document.getElementById("sim-stop").onclick = function(){
         started = false;
         document.getElementById("sim-stop").classList.add("hud-link-disabled");
+
+        // check if sim hasn't started and throw error accordingly
         if(craft.getTaskInfo().state === "Not started"){
           swal({
             icon: "error",
@@ -113,16 +119,43 @@
 
     <!-- Select simulation -->
     <select name="sim-type" id="sim-select">
-      <option value="station_keeping" selected>Station Keeping</option>
-      <option value="wayfinding">Wayfinding</option>
-      <option value="perception">Object Localisation and Characterisation</option>
-      <option value="wildlife">Wildlife Encounter and Avoid</option>
-      <option value="gymkhana">Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
-      <option value="scan_dock_deliver">Scan and Dock and Deliver</option>
+      <option value="station_keeping" selected>1. Station Keeping</option>
+      <option value="wayfinding">2. Wayfinding</option>
+      <option value="perception">3. Object Localisation and Characterisation</option>
+      <option value="wildlife">4. Wildlife Encounter and Avoid</option>
+      <option value="gymkhana">5. Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
+      <option value="scan_dock_deliver">6. Scan and Dock and Deliver</option>
     </select>
 
+    <!-- Toggle view -->
+    <button class="push hud-link" id="toggle-view">Toggle View</button>
+    <script>
+      // Toggle map and camera to switch place 
+      document.getElementById("toggle-view").onclick = function(){
+
+        var cam = document.getElementById("camera_stream");
+        var map = document.getElementById("map");
+
+        // switch to camera view
+        if(map.style.width == "65%"){
+          document.getElementById("body-content").append(cam);
+          document.getElementById("bottom-panel").append(map);
+          cam.style.width = "65%";
+          map.style.width = "100%";
+          
+        // switch to map view
+        } else {
+          document.getElementById("body-content").append(map);
+          document.getElementById("bottom-panel").append(cam);
+          cam.style.width = "50%";
+          map.style.width = "65%";
+        }
+      };
+    </script>
+
+
     <!-- Execute Editor Code -->
-    <button class="push hud-link" id="execute">Execute</button>
+    <button class="hud-link" id="execute">Execute</button>
     <script>
       document.getElementById("execute").onclick = function(){
         if(craft.getTaskInfo().state === "running"){
@@ -148,7 +181,7 @@
   </div>
   <div id="body-content">
   <!-- Google Maps Display -->
-  <div id="map">
+  <div id="map" style="width: 65%">
       <script>
         const icon = (rotation, colour, scale) => ({
           path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
@@ -281,8 +314,7 @@
       </div>
     </div>
 
-    <!-- Camera Stream -->
-    <div class="panel-half">
+    <div id="bottom-panel" class="panel-half">
 
     <!-- Information Panel -->
     <div class="panel">
