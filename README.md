@@ -11,7 +11,7 @@ To build image locally, clone this repository build the image in `images/base`:
 git clone https://github.com/cjpappas/MacSim.git
 docker build -f images/base/Dockerfile -t altmattr/simulation .
 ```
-Alternatively, you can pull the latest version from [Dockerhub](https://hub.docker.com/). This is done automatically if the image isn't found locally.
+Alternatively, you can pull the latest version from [Dockerhub](https://hub.docker.com/). This is done automatically if the image isn't found locally. We provide two images, one for standard (linux/amd64) architectures and one for the M1 chips (linux/arm64). The default image that is pulled is linux/amd64. If you want to run the sim on an M1, please use `altmattr/simulation:latest-m1` in the command below.
 
 To run the image:
 ```bash
@@ -20,7 +20,7 @@ docker run -itd \
     -p 9090:9090 \
     -p 8080:8080 \
     -p 80:80 \
-    altmattr/simulation
+    altmattr/simulation:latest
 ```
 
 You can connect to the image and source ROS with:
