@@ -359,7 +359,7 @@
 
         //Check if simulation is ready, make camera visible and set source
         var cameraCheck = setInterval(() => {
-          if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running") && craft.getTaskInfo().name !== "perception"){
+          if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
             document.getElementById("camera_stream").style.visibility = "visible";
             document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
             clearInterval(cameraCheck);
