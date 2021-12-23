@@ -185,6 +185,7 @@ nav a:hover:after {
 select {
   border: 2px solid #A6192E;
   width: 16%;
+  height: 28px;
 }
 
 .panel {
@@ -258,7 +259,7 @@ select {
 
   height: 100%;
   width: 50%;
-  z-index: 999;
+  z-index: 998;
   
 }
 

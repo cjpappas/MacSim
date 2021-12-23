@@ -27,6 +27,10 @@ def style():
 def api():
     return send_from_directory("", "api.js")
 
+@app.route("/get_image")
+def get_image():
+    return send_from_directory("", "no-camera-found.png")
+
 @app.route("/api/start_sim", methods=["POST"])
 def start():
     sim = request.json["sim"]
