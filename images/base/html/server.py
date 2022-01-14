@@ -2,7 +2,14 @@ from flask import Flask, request, send_from_directory
 import subprocess
 
 app = Flask(__name__, static_url_path="")
-sims = { "station_keeping": "station_keeping.launch" }
+sims = { 
+    "station_keeping": "station_keeping.launch",
+    "wayfinding": "wayfinding.launch",
+    "perception": "perception_task.launch" ,
+    "wildlife": "wildlife.launch",
+    "gymkhana": "gymkhana.launch",
+    "scan_dock_deliver": "scan_dock_deliver.launch"
+}
 
 @app.route("/")
 def index():
@@ -20,6 +27,10 @@ def style():
 def api():
     return send_from_directory("", "api.js")
 
+@app.route("/get_image")
+def get_image():
+    return send_from_directory("", "no-camera-found.png")
+
 @app.route("/api/start_sim", methods=["POST"])
 def start():
     sim = request.json["sim"]
@@ -28,9 +39,8 @@ def start():
         # https://github.com/PX4/PX4-containers/issues/198
         subprocess.run(["source ~/vrx_ws/devel/setup.bash && (Xvfb :1 -screen 0 1600x1200x16 &) && export DISPLAY=:1.0 && roslaunch vrx_gazebo %s gui:=false &"%(sims[sim])],
                                  executable="/bin/bash", shell=True)
-        print("done")
         return {"status": "Simulation started."}
-    return {"status": "Simulation type not found"}
+    return {"status": "Simulation type not found."}
 
 @app.route("/api/stop_sim", methods=["POST"])
 def stop():

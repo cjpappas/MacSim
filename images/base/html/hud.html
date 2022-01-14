@@ -13,6 +13,9 @@
 
 <body>
 <div id="main-content">
+  <h1 id="loader" style=" width: 100%; height: 100%; z-index: 999; background-color: rgba(0, 0, 0, 0.4); 
+  color: white; position: absolute; margin-top: 0; text-align: center; display:flex; align-items: center;
+  justify-content: center; visibility: hidden;">Loading...</h1>
   <nav>
     <a class="item" href="/">Team Boat</a>
     <a class="push item" href="/">Home</a>
@@ -74,7 +77,9 @@
       var started = false;
       document.getElementById("sim-start").onclick = () => {
         document.getElementById("sim-start").classList.add("hud-link-disabled");
+        document.getElementById("loader").style.visibility = "visible";
         started = true;
+        // check if sim is already running and throw error accordingly
         if(craft.getTaskInfo().state !== "Not started"){
           swal({
             icon: "error",
@@ -84,7 +89,10 @@
           document.getElementById("sim-stop").classList.remove("hud-link-disabled");
         } else {
           document.getElementById("sim-start").classList.add("hud-link-disabled");
-          startSim("station_keeping").then(() => document.getElementById("sim-stop").classList.remove("hud-link-disabled"));
+
+          // choose the selected sim to run 
+          const select = document.getElementById("sim-select");
+          startSim(select.options[select.selectedIndex].value)
         }
       }
     </script>
@@ -95,6 +103,8 @@
       document.getElementById("sim-stop").onclick = function(){
         started = false;
         document.getElementById("sim-stop").classList.add("hud-link-disabled");
+
+        // check if sim hasn't started and throw error accordingly
         if(craft.getTaskInfo().state === "Not started"){
           swal({
             icon: "error",
@@ -111,8 +121,45 @@
       };
     </script>
 
+    <!-- Select simulation -->
+    <select name="sim-type" id="sim-select">
+      <option value="station_keeping" selected>1. Station Keeping</option>
+      <option value="wayfinding">2. Wayfinding</option>
+      <option value="perception">3. Object Localisation and Characterisation</option>
+      <option value="wildlife">4. Wildlife Encounter and Avoid</option>
+      <option value="gymkhana">5. Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
+      <option value="scan_dock_deliver">6. Scan and Dock and Deliver</option>
+    </select>
+
+    <!-- Toggle view -->
+    <button class="push hud-link" id="toggle-view">Toggle View</button>
+    <script>
+      // Toggle map and camera to switch place 
+      document.getElementById("toggle-view").onclick = function(){
+
+        var cam = document.getElementById("camera_stream");
+        var map = document.getElementById("map");
+
+        // switch to camera view
+        if(map.style.width == "65%"){
+          document.getElementById("body-content").append(cam);
+          document.getElementById("bottom-panel").append(map);
+          cam.style.width = "65%";
+          map.style.width = "100%";
+          
+        // switch to map view
+        } else {
+          document.getElementById("body-content").append(map);
+          document.getElementById("bottom-panel").append(cam);
+          cam.style.width = "50%";
+          map.style.width = "65%";
+        }
+      };
+    </script>
+
+
     <!-- Execute Editor Code -->
-    <button class="push hud-link" id="execute">Execute</button>
+    <button class="hud-link" id="execute">Execute</button>
     <script>
       document.getElementById("execute").onclick = function(){
         if(craft.getTaskInfo().state === "running"){
@@ -138,7 +185,7 @@
   </div>
   <div id="body-content">
   <!-- Google Maps Display -->
-  <div id="map">
+  <div id="map" style="width: 65%">
       <script>
         const icon = (rotation, colour, scale) => ({
           path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
@@ -158,6 +205,32 @@
           lat: r * Math.sin(theta),
           lng: r * Math.cos(theta)
         });
+
+        const setSelectValue = () => {
+          switch(craft.getTaskInfo().name){
+            case "station_keeping":
+              document.getElementById("sim-select").selectedIndex = 0;
+              break;
+            case "wayfinding":
+              document.getElementById("sim-select").selectedIndex = 1;
+              break;
+            case "perception":
+              document.getElementById("sim-select").selectedIndex = 2;
+              break;
+            case "wildlife":
+              document.getElementById("sim-select").selectedIndex = 3;
+              break;
+            case "gymkhana":
+              document.getElementById("sim-select").selectedIndex = 4;
+              break;
+            case "scan_dock_deliver":
+              document.getElementById("sim-select").selectedIndex = 5;
+              break;
+            default:
+              document.getElementById("sim-select").selectedIndex = 0;
+              break;
+          }
+        }
 
         let craft = init(getAddress());
         var map;
@@ -179,22 +252,40 @@
             map,
             title: "craft",
           });
-          goal = new google.maps.Marker({
-            position: {lat: 0, lng: 0},
-            icon: icon(Math.PI/2, "#05FF05", 0.5),
-            map,
-            title: "goal",
-          });
         }
 
         setInterval(() => {
+          // Set position of craft
           marker.setPosition(polarToLatLng(craft.getPosition()));
           marker.setIcon(icon(craft.getVelocity().theta, "#FFFFFF", 1));
           if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
-            goal.setPosition(polarToLatLng(craft.getGoalPosition()));
-            goal.setIcon(icon(craft.getGoalVelocity().theta, "#05FF05", 0.5));
+            new google.maps.Marker({
+              position: polarToLatLng(craft.getGoalPosition()),
+              icon: icon(craft.getGoalVelocity(), "#05FF05", 0.5),
+              map,
+              title: "goal"
+            });
+          } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            craft.getWayfindingPositions().forEach((position, index) => {
+              new google.maps.Marker({
+                position: polarToLatLng(position.goal_pos),
+                icon: icon(position.goal_vel.theta, "#05FF05", 0.5),
+                map,
+                title: `goal ${index}`
+              });
+            });
+          } else if(craft.getTaskInfo().name === "wildlife" && craft.getAnimalPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            craft.getAnimalPositions().forEach((position) => {
+              new google.maps.Marker({
+                position: polarToLatLng(position.animal_pos),
+                icon: icon(position.animal_vel.theta, "#05FF05", 0.5),
+                map,
+                title: position.animal_type
+              });
+            });
           }
         }, 500);
+        setTimeout(() => setSelectValue(), 3500);
       </script>
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>
@@ -227,8 +318,7 @@
       </div>
     </div>
 
-    <!-- Camera Stream -->
-    <div class="panel-half">
+    <div id="bottom-panel" class="panel-half">
 
     <!-- Information Panel -->
     <div class="panel">
@@ -247,6 +337,7 @@
           if(craft.getTaskInfo().state == "initial" ||
              craft.getTaskInfo().state == "ready"   || 
              craft.getTaskInfo().state == "running"){
+              document.getElementById("loader").style.visibility = "hidden";
               document.getElementById("execute").classList.remove("hud-link-disabled");
               document.getElementById("sim-stop").classList.remove("hud-link-disabled");
               document.getElementById("sim-start").classList.add("hud-link-disabled");
@@ -266,14 +357,13 @@
     </div>
     
       <!-- Camera Stream -->
-      <img id="camera_stream" src="" style="visibility: hidden;";/>
+      <img id="camera_stream" src="/get_image" />
       <script>
         const re = /https?:\/\/(.*)\/hud/;
-        document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
 
         //Check if simulation is ready, make camera visible and set source
         var cameraCheck = setInterval(() => {
-          if(craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running"){
+          if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
             document.getElementById("camera_stream").style.visibility = "visible";
             document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
             clearInterval(cameraCheck);

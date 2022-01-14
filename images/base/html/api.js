@@ -13,8 +13,15 @@ let connection;
 const initialData = {
     cur_pos: { r: 0, theta: 0 },    
     cur_vel: { r: 0, theta: 0 },
+    // Task 1: Station Keeping
     goal_pos: undefined,
     goal_vel: undefined,
+    // Task 2: Wayfinding
+    poses: undefined,
+    // Task 4: Wildlife Encounter and Avoid
+    animals: undefined,
+    // Task 5: Channel Navigation, Acoustic Beacon Localization and Obstacle Avoidance
+    blackbox_ping: undefined,
     images: {
         front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
@@ -38,6 +45,12 @@ const topics = {
         onMsg: (msg) => data.wind.speed = msg.data,
         msgType: "std_msgs/Float64"
     },
+    // "/vrx/scan_dock_deliver/color_sequence": {
+    //     onMsg: (msg) => {
+
+    //     },
+    //     msgType: "vrx_gazebo/ColorSequence" // Doesn't seem to be implemented?
+    // },
     "/vrx/station_keeping/goal": {
         onMsg: (msg) => {
             var eu = new three.Euler();
@@ -65,6 +78,41 @@ const topics = {
             score: msg.score
         },
         msgType: "vrx_gazebo/Task"
+    },
+    "/vrx/wayfinding/waypoints": {
+        onMsg: (msg) => data.poses = msg.poses.map((pose) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                pose.pose.orientation.x, 
+                pose.pose.orientation.y, 
+                pose.pose.orientation.z, 
+                pose.pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            return {
+                goal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
+                goal_vel: { r: 0, theta: eu.z }
+            };
+        }),
+        msgType: "geographic_msgs/GeoPath"
+    },
+    "/vrx/wildlife/animals/poses": {
+        onMsg: (msg) => data.animals = msg.poses.map((pose) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                pose.pose.orientation.x, 
+                pose.pose.orientation.y, 
+                pose.pose.orientation.z, 
+                pose.pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            return {
+                animal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
+                animal_vel: { r: 0, theta: eu.z }, // This might be wrong since animals can move, but will leave as is for now
+                animal_type: pose.header.frame_id
+            }
+        }),
+        msgType: "geographic_msgs/GeoPath"
     },
     "/wamv/sensors/cameras/front_left_camera/image_raw": {
         onMsg: (msg) => data.images.front_left = {
@@ -124,6 +172,14 @@ const topics = {
             data.cur_vel.theta = eu.z;
         },
         msgType: "sensor_msgs/Imu"
+    },
+    "/wamv/sensors/pingers/pinger/range_bearing": {
+        onMsg: (msg) => data.blackbox_ping = {
+            range: msg.range,
+            bearing: msg.bearing,
+            elevation: msg.elevation
+        },
+        msgType: "usv_msgs/RangeBearing"
     }
 };
 
@@ -161,6 +217,9 @@ const init = (url, setup = undefined, act = () => {}) => {
         getVelocity,
         getGoalPosition,
         getGoalVelocity,
+        getWayfindingPositions,
+        getAnimalPositions,
+        getBlackboxPing,
         getImages,
         getTaskInfo,
         getWindInfo,
@@ -170,7 +229,9 @@ const init = (url, setup = undefined, act = () => {}) => {
             setLateralThrusterAngle,
             setLeftThrusterPower,
             setRightThrusterPower,
-            setLateralThrusterPower
+            setLateralThrusterPower,
+            sendPerceptionGuess,
+            fireBallShooter
         },
         moveForward,
         moveBackwards,
@@ -290,6 +351,49 @@ const setLateralThrusterPower = (strength) => {
     }));
 }
 
+const sendPerceptionGuess = (lat, lng, objString) => {
+    // List of IDs from https://robonation.org/app/uploads/sites/2/2021/09/VirtualRobotX2022_Task-Descriptions_v1.0.pdf
+    const identifiers = [
+        "mb_marker_buoy_black",
+        "mb_marker_buoy_green",
+        "mb_marker_buoy_red",
+        "mb_marker_buoy_white",
+        "mb_round_buoy_black",
+        "mb_round_buoy_orange"
+    ]
+    if(objString in identifiers){
+        const topic = new ROSLIB.Topic({
+            ros: connection,
+            name: "/vrx/perception/landmark",
+            msgType: "geographic_msgs/GeoPoseStamped"
+        });
+        topic.publish(new ROSLIB.Message({
+            header: {
+                stamp: Date.now(),
+                frame_id: objString
+            },
+            pose: {
+                position: {
+                    latitude: lat,
+                    longitude: lng,
+                    altitude: 0.0
+                }
+            }
+        }));
+    } else {
+        throw new Error(`Unknown object identifier: ${objString}`);
+    }
+}
+
+const fireBallShooter = () => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/shooters/ball_shooter/fire",
+        msgType: "std_msgs/Empty"
+    });
+    topic.publish(new ROSLIB.Message({}));
+}
+
 // Getters
 
 /**
@@ -311,7 +415,7 @@ const getPosition = () => data.cur_pos;
 const getVelocity = () => data.cur_vel;
 
 /**
- * STATION KEEPING SIMULATION ONLY
+ * STATION KEEPING (TASK 1) SIMULATION ONLY
  * Returns the position of the current goal.
  * Returns undefined for other simulations.
  * @returns {
@@ -322,7 +426,7 @@ const getVelocity = () => data.cur_vel;
 const getGoalPosition = () => data.goal_pos;
 
 /**
- * STATION KEEPING SIMULATION ONLY
+ * STATION KEEPING (TASK 1) SIMULATION ONLY
  * Returns the velocity of the current goal.
  * Returns undefined for other simulations.
  * @returns {
@@ -331,6 +435,52 @@ const getGoalPosition = () => data.goal_pos;
  * } 
  */
 const getGoalVelocity = () => data.goal_vel;
+
+/**
+ * WAYFINDING (TASK 2) SIMULATION ONLY
+ * Returns the array of positions for the wayfinding task.
+ * Returns undefined for other simulations.
+ * @returns [{
+ *     goal_pos: {
+ *         r: float - goal's distance from reference point (initial location on load),
+ *         theta: float - goal angle in radians from anticlockwise from east
+ *     }
+ *     goal_vel: {
+ *         r: float - will always return 0 since the goal isn't moving,
+ *         theta: float - heading of the goal in radians from anticlockwise from east
+ *     }
+ * }] 
+ */
+const getWayfindingPositions = () => data.poses;
+
+/**
+ * WILDLIFE (TASK 4) SIMULATION ONLY
+ * Returns the array of positions for the wayfinding task.
+ * Returns undefined for other simulations.
+ * @returns [{
+ *     goal_pos: {
+ *         r: float - goal's distance from reference point (initial location on load),
+ *         theta: float - goal angle in radians from anticlockwise from east
+ *     }
+ *     goal_vel: {
+ *         r: float - will always return 0 since the goal isn't moving,
+ *         theta: float - heading of the goal in radians from anticlockwise from east
+ *     }
+ * }] 
+ */
+ const getAnimalPositions = () => data.animals;
+
+/**
+ * GYMKHANA (TASK 5) SIMULATION ONLY
+ * Returns the current ping from the blackbox.
+ * Returns undefined for other simulations.
+ * @returns {
+ *     range: float - Distance to ping
+ *     bearing: float - relative bearing of blackbox from USV (with noise)
+ *     elevation: float - relative elevation of blackbox from USV (with noise)
+ * } 
+ */
+const getBlackboxPing = () => data.blackbox_ping;
 
 /**
  * Return various pieces of informatino about the current task running in the simulation.
@@ -454,7 +604,14 @@ const stop = () => new Promise((resolve, reject) => {
     }
 });
 
-const sims = ["station_keeping"];
+const sims = [
+    "station_keeping",
+    "wayfinding",
+    "perception",
+    "wildlife",
+    "gymkhana",
+    "scan_dock_deliver"
+];
 
 /**
  * Sends a request to the server to start the requested simulation.
@@ -498,6 +655,7 @@ const generateUrls = (url) => {
     }
 }
 
+// Log function to display information on the hud as well as console.log
 const log = (...args) => {
     if(env === "broswer"){
         // TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html
