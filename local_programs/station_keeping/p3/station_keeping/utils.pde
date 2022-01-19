@@ -14,7 +14,7 @@ void posAndVel(Polar pos, Polar vel, float thrust) {
   // black for the indication
   stroke(0);
   strokeWeight(1);
-  pline(pos, pos.plus(new Polar(vel.theta, 20)));
+  pline(pos, pos.plus(new Polar(vel.psi, 20)));
   // mag part in green
   stroke(0, 180, 0);
   strokeWeight(2);
@@ -22,19 +22,27 @@ void posAndVel(Polar pos, Polar vel, float thrust) {
   //trust
   stroke(180, 0, 0);
   strokeWeight(3);
-  pline(pos, pos.plus(new Polar(vel.theta+ PI, thrust*1000)));
+  pline(pos, pos.plus(new Polar(vel.psi+ PI, thrust*1000)));
 }
 
 Polar fromCartesian(float x, float y){
   return new Polar(atan2(y,x), sqrt(x*x+y*y));
 }
 
-float normaliseTheta(float theta){
-   if (theta > TWO_PI){
-      return theta - TWO_PI;
+float normalisePsi(float psi){
+   if (psi > PI){
+      return psi - TWO_PI;
     }
-    if (theta < 0){
-      return theta + TWO_PI;
+    if (psi < -1*PI){
+      return psi + TWO_PI;
     }
-    return theta;
+    return psi;
+}
+
+float unitisePsi(float psi){
+   if (psi > 0){
+     return 1;
+   } else { 
+     return -1;
+   }
 }

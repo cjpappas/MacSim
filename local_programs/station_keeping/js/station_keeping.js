@@ -1,16 +1,13 @@
 const { init, startSim } = require("./api.js");
 console.log(init);
 
-const craft = init("ws://localhost:9090", setup, act);
+const craft = init("localhost");
 
-startSim("station_keeping", craft);
+craft.moveForward(1);
+let inter = setInterval(() => {
+  craft.rotateAnticlockwise(10);
+}, 1000);
 
-function setup() {
-  console.log("setting up");
-}
-
-function act(){
-  // steering force = desire velocity - current velocity
-  console.log(craft.getPosition());
-  console.log("acting");
-}
+setTimeout(() => {
+  clearInterval(inter);
+}, 10000);

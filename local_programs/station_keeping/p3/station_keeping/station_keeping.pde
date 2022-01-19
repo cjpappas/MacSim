@@ -3,8 +3,12 @@ Polar craftVel;
 Polar goalPos;
 Polar goalVel;
 
-int state; // 0 -> stationary, 1 -> rotating, 2 -> moving.
-float prevDist = 1000;
+int state; // 0 -> still, 1 -> rotating, 2 -> moving, 3 -> orienting.
+
+float prevDistGoal = 1000;
+float distThresh = 2;
+float stillThresh = 5;
+float dirThresh = 0.05;
 
 void setup() {
   size(1200, 700);
@@ -22,71 +26,56 @@ void draw() {
   // co-ordinates
   line(width/2, 0, width/2, height);
   line(0, height/2, width, height/2);
-
-  float craftThrust = 0f;
-  float dirToGoal = normaliseTheta(craftVel.theta - (goalPos.minus(craftPos)).theta);
-  float dirToOrientation = normaliseTheta(craftVel.theta - goalVel.theta);
+  
+  float dirToGoal = normalisePsi(craftVel.psi - (goalPos.minus(craftPos)).psi);
+  float dirToOrientation = normalisePsi(craftVel.psi - goalVel.psi);
   float distToGoal = goalPos.minus(craftPos).mag;
-  if (state == 0){
-    if (abs(distToGoal) > 5) {
+   
+  if (state == 0){ // still
+    print("still");
+    if (abs(distToGoal) > stillThresh) {
       state = 1;
-    } else if (abs(dirToOrientation) > 0.05){
-      state = 2;
     }
   }
+  
   if (state == 1) {            // rotating
     print("rotating ... ");
-    if (abs(distToGoal) < 5) { // lining up
-      print("lining up ... ");
-      if (dirToOrientation > 0.05  && dirToOrientation < 2*PI - 0.05){
-        print("adjustment needed ... ");print(dirToOrientation);
-        if (dirToOrientation < PI) {
-          println("rotate right");
-          craftVel = new Polar(craftVel.theta - 0.01, craftVel.mag);
-        } else {
-          println("rotate left");
-          craftVel = new Polar(craftVel.theta + 0.01, craftVel.mag);
-        }
+    if (abs(dirToGoal) < dirThresh){
+      print("going to moving state ...");
+      state = 2;
+    } else {
+      if (dirToGoal > 0){
+        craftVel = new Polar(craftVel.psi - 0.01, craftVel.mag);
       } else {
-        println("close enough");
-        state = 0;
-      }
-    } else {                   // going for goal
-      print("rotating to goal ... ");
-      if (abs(dirToGoal) > 0.05) {
-        print("adjustment needed ... ");
-        if (dirToGoal < PI) {
-          println("rotate right");
-          craftVel = new Polar(craftVel.theta - 0.01, craftVel.mag);
-        } else {
-          println("rotate left");
-          craftVel = new Polar(craftVel.theta + 0.01, craftVel.mag);
-        }
-      } else {
-        println("already pointing the right direction");
-        state = 2;
+        craftVel = new Polar(craftVel.psi + 0.01, craftVel.mag);
       }
     }
-  } else if (state == 2) {     // moving
-    print("moving ... ");
-    if (distToGoal > prevDist) {
-      println("moving away!");
+  } 
+  
+  float craftThrust = 0f;
+  if (state == 2) {     // moving
+    if (distToGoal > prevDistGoal) {
       state = 1;
-    } else if (abs(distToGoal) > 5) {
-      print("calculating forward or backwards ... ");
-      if (distToGoal > 0) {
-        println("moving forwards");
-        craftThrust = 0.0001*distToGoal;
-      } else {
-        println("moving backwards");
-        craftThrust = -0.0001*distToGoal;
-      }
+    } else if (abs(distToGoal) < distThresh) {
+      state = 3;
     } else {
-      println("close enough");
-      state = 1;
+      craftThrust = 0.0001*distToGoal;
     }
   }
-  prevDist = distToGoal;
+  
+  if (state == 3){
+    if (abs(dirToOrientation) < dirThresh){
+      state = 0;
+    } else {
+      if (dirToOrientation > 0){
+        craftVel = new Polar(craftVel.psi - 0.01, craftVel.mag);
+      } else {
+        craftVel = new Polar(craftVel.psi + 0.01, craftVel.mag);
+      }
+    }
+  }
+      
+  prevDistGoal = distToGoal;
 
 
   //goal
@@ -94,6 +83,13 @@ void draw() {
 
   // craft
   posAndVel(craftPos, craftVel, craftThrust);
+  
+  // debug
+  fill(0);
+  text(state, 10,12);
+  text(distToGoal, 10, 24);
+  text(dirToGoal, 10, 36);
+  text(dirToOrientation, 10, 48);
 
   craftVel.mag += craftThrust; // thrust
   craftVel.mag -= 0.1*craftVel.mag*craftVel.mag; // drag
@@ -107,11 +103,11 @@ void mousePressed(){
 
 void keyPressed(){
   if (keyCode == UP)
-    goalVel.theta = PI/2;
+    goalVel.psi = PI/2;
   if (keyCode == LEFT)
-    goalVel.theta = PI;
+    goalVel.psi = PI;
   if (keyCode == RIGHT)
-    goalVel.theta = 0;
+    goalVel.psi = 0;
   if (keyCode == DOWN)
-    goalVel.theta = 3*(PI/2);
+    goalVel.psi = 3*(PI/2);
 }

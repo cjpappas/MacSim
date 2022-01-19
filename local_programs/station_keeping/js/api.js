@@ -9,13 +9,19 @@ if(env === "node"){
   three = THREE;
 }
 
-const MS_TO_KNOTS = 1.94384;
-
 let connection;
 const initialData = {
-    cur_pos: { heading: 0, lat: 0, lng: 0 },    
-    gps_vel: { x: 0, y: 0 },
+    cur_pos: { r: 0, theta: 0 },    
+    cur_vel: { r: 0, theta: 0 },
+    // Task 1: Station Keeping
     goal_pos: undefined,
+    goal_vel: undefined,
+    // Task 2: Wayfinding
+    poses: undefined,
+    // Task 4: Wildlife Encounter and Avoid
+    animals: undefined,
+    // Task 5: Channel Navigation, Acoustic Beacon Localization and Obstacle Avoidance
+    blackbox_ping: undefined,
     images: {
         front_left: { height: 0, width: 0, encoding: "", step: 0, data: [] }, // https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         front_right: { height: 0, width: 0, encoding: "", step: 0, data: [] },
@@ -25,6 +31,10 @@ const initialData = {
     wind: { heading: 0, speed: 0 }
 };
 let data = JSON.parse(JSON.stringify(initialData)); // Deep copy
+let urls = { server: "", ws: "", stream: "" };
+
+// Capture inital craft pos - Used for conversion to polar coords
+let referencePos = { lat: 0, lng: 0 }
 
 const topics = {
     "/vrx/debug/wind/direction": {
@@ -35,6 +45,12 @@ const topics = {
         onMsg: (msg) => data.wind.speed = msg.data,
         msgType: "std_msgs/Float64"
     },
+    // "/vrx/scan_dock_deliver/color_sequence": {
+    //     onMsg: (msg) => {
+
+    //     },
+    //     msgType: "vrx_gazebo/ColorSequence" // Doesn't seem to be implemented?
+    // },
     "/vrx/station_keeping/goal": {
         onMsg: (msg) => {
             var eu = new three.Euler();
@@ -45,11 +61,8 @@ const topics = {
                 msg.pose.orientation.w
             );
             eu.setFromQuaternion(ex);
-            data.goal_pos = {
-                lat: msg.pose.position.latitude,
-                lng: msg.pose.position.longitude,
-                heading: eu.z
-            };
+            data.goal_pos = calcPolarCoords(msg.pose.position.latitude, msg.pose.position.longitude);
+            data.goal_vel = { r: 0, theta: eu.z }
         },
         msgType: "geographic_msgs/GeoPoseStamped"   
     },
@@ -65,6 +78,41 @@ const topics = {
             score: msg.score
         },
         msgType: "vrx_gazebo/Task"
+    },
+    "/vrx/wayfinding/waypoints": {
+        onMsg: (msg) => data.poses = msg.poses.map((pose) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                pose.pose.orientation.x, 
+                pose.pose.orientation.y, 
+                pose.pose.orientation.z, 
+                pose.pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            return {
+                goal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
+                goal_vel: { r: 0, theta: eu.z }
+            };
+        }),
+        msgType: "geographic_msgs/GeoPath"
+    },
+    "/vrx/wildlife/animals/poses": {
+        onMsg: (msg) => data.animals = msg.poses.map((pose) => {
+            var eu = new three.Euler();
+            var ex = new three.Quaternion(
+                pose.pose.orientation.x, 
+                pose.pose.orientation.y, 
+                pose.pose.orientation.z, 
+                pose.pose.orientation.w
+            );
+            eu.setFromQuaternion(ex);
+            return {
+                animal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
+                animal_vel: { r: 0, theta: eu.z }, // This might be wrong since animals can move, but will leave as is for now
+                animal_type: pose.header.frame_id
+            }
+        }),
+        msgType: "geographic_msgs/GeoPath"
     },
     "/wamv/sensors/cameras/front_left_camera/image_raw": {
         onMsg: (msg) => data.images.front_left = {
@@ -98,15 +146,16 @@ const topics = {
     },
     "/wamv/sensors/gps/gps/fix": {
         onMsg: (msg) => {
-            data.cur_pos.lat = msg.latitude;
-            data.cur_pos.lng = msg.longitude;
+            if(referencePos.lat == referencePos.lng == 0){
+                referencePos = { lat: msg.latitude, lng: msg.longitude };
+            }
+            data.cur_pos = calcPolarCoords(msg.latitude, msg.longitude);
         },
         msgType: "sensor_msgs/NavSatFix"
     },
     "/wamv/sensors/gps/gps/fix_velocity": {
         onMsg: (msg) => {
-            data.gps_vel.x = msg.vector.x * MS_TO_KNOTS; 
-            data.gps_vel.y = msg.vector.y * MS_TO_KNOTS;
+            data.cur_vel.r = Math.sqrt(Math.pow(msg.vector.x, 2) + Math.pow(msg.vector.y, 2));
         },
         msgType: "geometry_msgs/Vector3Stamped" 
     },
@@ -120,9 +169,17 @@ const topics = {
                 msg.orientation.w
             );
             eu.setFromQuaternion(ex);
-            data.cur_pos.heading = eu.z;
-            },
+            data.cur_vel.theta = eu.z;
+        },
         msgType: "sensor_msgs/Imu"
+    },
+    "/wamv/sensors/pingers/pinger/range_bearing": {
+        onMsg: (msg) => data.blackbox_ping = {
+            range: msg.range,
+            bearing: msg.bearing,
+            elevation: msg.elevation
+        },
+        msgType: "usv_msgs/RangeBearing"
     }
 };
 
@@ -131,8 +188,9 @@ const topics = {
  * @param {string} url - The url of the simualtion.
  * @returns {Object} Contains functions to interact with simulation.
  */
-const init = (url, setup = undefined, act = undefined) => {
-    connection = new ROSLIB.Ros({ url })
+const init = (url, setup = undefined, act = () => {}) => {
+    urls = generateUrls(url);
+    connection = new ROSLIB.Ros({ url: urls.ws });
     connection.on("connection", () => console.log("Connected to rosbridge server!"));
     connection.on("error", () => setTimeout(() => init(url, setup, act), 1000));
     connection.on("close", () => console.log("Connection to rosbridge server closed."))
@@ -144,13 +202,24 @@ const init = (url, setup = undefined, act = undefined) => {
                 messageType: topics[topic].msgType
             });
             listener.subscribe((message) => topics[topic].onMsg(message));
+        } else if (env == "node"){
+            const listener = new ROSLIB.Topic({
+                ros: connection,
+                name: topic,
+                messageType: topics[topic].msgType
+            });
+            listener.subscribe((message) => topics[topic].onMsg(message));
         }
     });
     if(setup !== undefined) setup();
-    return {
+    const craft = {
         getPosition,
+        getVelocity,
         getGoalPosition,
-        getGPSVelocity,
+        getGoalVelocity,
+        getWayfindingPositions,
+        getAnimalPositions,
+        getBlackboxPing,
         getImages,
         getTaskInfo,
         getWindInfo,
@@ -160,15 +229,34 @@ const init = (url, setup = undefined, act = undefined) => {
             setLateralThrusterAngle,
             setLeftThrusterPower,
             setRightThrusterPower,
-            setLateralThrusterPower
+            setLateralThrusterPower,
+            sendPerceptionGuess,
+            fireBallShooter
         },
         moveForward,
         moveBackwards,
         rotateAnticlockwise,
         rotateClockwise,
         stop,
-        act: act === undefined ? () => {} : act
+        act,
+        log
     }
+    const actLoop = () => {
+        if(getTaskInfo().state === "running"){
+            var interval = setInterval(() => {
+                craft.act();
+                if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") {
+                    clearInterval(interval);
+                    // In case we stop the sim then start it again without refreshing
+                    setTimeout(() => actLoop(), 500);
+                }
+            }, 1000);
+        } else {
+            setTimeout(() => actLoop(), 500);
+        }
+    }
+    actLoop();
+    return craft;
 }
 
 // Immediate api
@@ -263,38 +351,136 @@ const setLateralThrusterPower = (strength) => {
     }));
 }
 
-// Getters - so data can't be accessed directly
+const sendPerceptionGuess = (lat, lng, objString) => {
+    // List of IDs from https://robonation.org/app/uploads/sites/2/2021/09/VirtualRobotX2022_Task-Descriptions_v1.0.pdf
+    const identifiers = [
+        "mb_marker_buoy_black",
+        "mb_marker_buoy_green",
+        "mb_marker_buoy_red",
+        "mb_marker_buoy_white",
+        "mb_round_buoy_black",
+        "mb_round_buoy_orange"
+    ]
+    if(objString in identifiers){
+        const topic = new ROSLIB.Topic({
+            ros: connection,
+            name: "/vrx/perception/landmark",
+            msgType: "geographic_msgs/GeoPoseStamped"
+        });
+        topic.publish(new ROSLIB.Message({
+            header: {
+                stamp: Date.now(),
+                frame_id: objString
+            },
+            pose: {
+                position: {
+                    latitude: lat,
+                    longitude: lng,
+                    altitude: 0.0
+                }
+            }
+        }));
+    } else {
+        throw new Error(`Unknown object identifier: ${objString}`);
+    }
+}
+
+const fireBallShooter = () => {
+    const topic = new ROSLIB.Topic({
+        ros: connection,
+        name: "/wamv/shooters/ball_shooter/fire",
+        msgType: "std_msgs/Empty"
+    });
+    topic.publish(new ROSLIB.Message({}));
+}
+
+// Getters
 
 /**
- * Returns the boat's current position.
+ * Returns the crafts's current position.
  * @returns {
- *     heading: float - current heading in radians,
- *     lat: float - current latitude,
- *     lng: float - current longitude
+ *     r: float - craft's current distance from reference point (initial location on load),
+ *     theta: float - craft's current angle, in radians from anticlockwise from east, from reference point (initial location on load)
  * }
  */
 const getPosition = () => data.cur_pos;
 
 /**
- * STATION KEEPING SIMULATION ONLY
+ * Returns the boat's current velocity.
+ * @returns {
+ *     r: float - current speed (estimated in m/s) of the craft travelling at theta heading,
+ *     theta: float - current heading of the craft in radians from anticlockwise from east
+ * }
+ */
+const getVelocity = () => data.cur_vel;
+
+/**
+ * STATION KEEPING (TASK 1) SIMULATION ONLY
  * Returns the position of the current goal.
  * Returns undefined for other simulations.
  * @returns {
- *     lat: float - latitude of the goal,
- *     lng: float - longitude of the goal,
- *     heading: float - heading of the goal
+ *     r: float - goal's distance from reference point (initial location on load),
+ *     theta: float - goal angle in radians from anticlockwise from east
  * } 
  */
 const getGoalPosition = () => data.goal_pos;
 
 /**
- * Returns the esimated velocity of the craft.
+ * STATION KEEPING (TASK 1) SIMULATION ONLY
+ * Returns the velocity of the current goal.
+ * Returns undefined for other simulations.
  * @returns {
- *     x: float - (m/s) in a north/south direction,
- *     y: float - (m/s) in a west/east direction
- * }
+ *     r: float - will always return 0 since the goal isn't moving,
+ *     theta: float - heading of the goal in radians from anticlockwise from east
+ * } 
  */
-const getGPSVelocity = () => data.gps_vel;
+const getGoalVelocity = () => data.goal_vel;
+
+/**
+ * WAYFINDING (TASK 2) SIMULATION ONLY
+ * Returns the array of positions for the wayfinding task.
+ * Returns undefined for other simulations.
+ * @returns [{
+ *     goal_pos: {
+ *         r: float - goal's distance from reference point (initial location on load),
+ *         theta: float - goal angle in radians from anticlockwise from east
+ *     }
+ *     goal_vel: {
+ *         r: float - will always return 0 since the goal isn't moving,
+ *         theta: float - heading of the goal in radians from anticlockwise from east
+ *     }
+ * }] 
+ */
+const getWayfindingPositions = () => data.poses;
+
+/**
+ * WILDLIFE (TASK 4) SIMULATION ONLY
+ * Returns the array of positions for the wayfinding task.
+ * Returns undefined for other simulations.
+ * @returns [{
+ *     goal_pos: {
+ *         r: float - goal's distance from reference point (initial location on load),
+ *         theta: float - goal angle in radians from anticlockwise from east
+ *     }
+ *     goal_vel: {
+ *         r: float - will always return 0 since the goal isn't moving,
+ *         theta: float - heading of the goal in radians from anticlockwise from east
+ *     }
+ * }] 
+ */
+ const getAnimalPositions = () => data.animals;
+
+/**
+ * GYMKHANA (TASK 5) SIMULATION ONLY
+ * Returns the current ping from the blackbox.
+ * Returns undefined for other simulations.
+ * @returns {
+ *     range: float - Distance to ping
+ *     bearing: float - relative bearing of blackbox from USV (with noise)
+ *     elevation: float - relative elevation of blackbox from USV (with noise)
+ * } 
+ */
+const getBlackboxPing = () => data.blackbox_ping;
 
 /**
  * Return various pieces of informatino about the current task running in the simulation.
@@ -418,20 +604,22 @@ const stop = () => new Promise((resolve, reject) => {
     }
 });
 
-const sims = ["station_keeping"];
+const sims = [
+    "station_keeping",
+    "wayfinding",
+    "perception",
+    "wildlife",
+    "gymkhana",
+    "scan_dock_deliver"
+];
 
 /**
  * Sends a request to the server to start the requested simulation.
  * @param {string} type - The type of simulation to start.
  */
-const startSim = (type, craft) => {
+const startSim = (type) => {
     if(sims.includes(type)){
-        data.task.state = "initialising";
-        var interval = setInterval(() => {
-            craft.act();
-            if(getTaskInfo().state === "finished" || getTaskInfo().state === "Not started") clearInterval(interval);
-        }, 1000);
-        return axios.post("/api/start_sim", { sim: type });
+        return axios.post(`${urls.server}/api/start_sim`, { sim: type });
     }
 }
 
@@ -439,8 +627,49 @@ const startSim = (type, craft) => {
  * Sends a request to the server to stop the current running simulation.
  */
 const stopSim = () => 
-    axios.post("/api/stop_sim", {}).then(() => data = JSON.parse(JSON.stringify(initialData)));
+    axios.post(`${urls.server}/api/stop_sim`, {})
+        .then(() => data = JSON.parse(JSON.stringify(initialData)));
+
+
+// Utility funciton to translate our lat/lng to polar coords
+/**
+ * 
+ * @param {float} lat 
+ * @param {float} lng 
+ * @returns {
+ *     r: float - distance from reference point,
+ *     theta: float - angle from reference point
+ * }
+ */
+const calcPolarCoords = (lat, lng) => ({
+        r: Math.sqrt(Math.pow(lat - referencePos.lat, 2) + Math.pow(lng - referencePos.lng, 2)),
+        theta: Math.atan((lat - referencePos.lat) / (lng - referencePos.lng))
+});
+
+// Utilities for determining URLs
+const generateUrls = (url) => {
+    return {
+        server: `http://${url}`,
+        ws: `ws://${url}:9090`,
+        stream: `http://${url}:8080`
+    }
+}
+
+// Log function to display information on the hud as well as console.log
+const log = (...args) => {
+    if(env === "broswer"){
+        // TY stackoverflow https://stackoverflow.com/questions/20256760/javascript-console-log-to-html
+        var n, i, output = "";
+        for(i = 0; i < args.length; i++){
+            n = args[i];
+            output += "object" == typeof n && "object" == typeof JSON && "function" == typeof JSON.stringify ? output 
+            += JSON.stringify(n): output += n, output;
+        }
+        document.getElementById("console-log-body").innerHTML = output;
+    }
+    console.log(...args);
+}
 
 if(env === "node"){
-  module.exports = { init, startSim, stopSim };
+  module.exports = { init, startSim, stopSim, getUrls: () => urls };
 }
