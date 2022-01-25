@@ -34,7 +34,8 @@ let data = JSON.parse(JSON.stringify(initialData)); // Deep copy
 let urls = { server: "", ws: "", stream: "" };
 
 // Capture inital craft pos - Used for conversion to polar coords
-let referencePos = { lat: 0, lng: 0 }
+// let referencePos = { lat: 0, lng: 0 }
+let referencePos = undefined;
 
 const topics = {
     "/vrx/debug/wind/direction": {
@@ -146,7 +147,8 @@ const topics = {
     },
     "/wamv/sensors/gps/gps/fix": {
         onMsg: (msg) => {
-            if(referencePos.lat == referencePos.lng == 0){
+            // if(referencePos.lat == referencePos.lng == 0){
+            if(!referencePos){
                 referencePos = { lat: msg.latitude, lng: msg.longitude };
             }
             data.cur_pos = calcPolarCoords(msg.latitude, msg.longitude);
