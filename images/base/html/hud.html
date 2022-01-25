@@ -262,7 +262,7 @@
           } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             craft.getWayfindingPositions().forEach((position, index) => {
               new google.maps.Marker({
-                position: position.global_pos,
+                position: position.goal_global,
                 icon: icon(position.goal_vel.psi, "#05FF05", 0.5),
                 map,
                 title: `goal ${index}`
