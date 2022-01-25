@@ -11,11 +11,13 @@ if(env === "node"){
 
 let connection;
 const initialData = {
-    cur_pos: { r: 0, theta: 0 },    
-    cur_vel: { r: 0, theta: 0 },
+    cur_pos: { r: 0, psi: 0 },    
+    cur_vel: { r: 0, psi: 0 },
+    cur_global: { lat: 0, lng: 0},
     // Task 1: Station Keeping
     goal_pos: undefined,
     goal_vel: undefined,
+    goal_global: undefined,
     // Task 2: Wayfinding
     poses: undefined,
     // Task 4: Wildlife Encounter and Avoid
@@ -63,7 +65,8 @@ const topics = {
             );
             eu.setFromQuaternion(ex);
             data.goal_pos = calcPolarCoords(msg.pose.position.latitude, msg.pose.position.longitude);
-            data.goal_vel = { r: 0, theta: eu.z }
+            data.goal_vel = { r: 0, psi: eu.z }
+            data.goal_global = { lat: msg.pose.position.latitude, lng: msg.pose.position.longitude };
         },
         msgType: "geographic_msgs/GeoPoseStamped"   
     },
@@ -92,7 +95,8 @@ const topics = {
             eu.setFromQuaternion(ex);
             return {
                 goal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
-                goal_vel: { r: 0, theta: eu.z }
+                goal_vel: { r: 0, psi: eu.z },
+                goal_global: { lat: pose.pose.position.latitude, lng: pose.pose.position.longitude }
             };
         }),
         msgType: "geographic_msgs/GeoPath"
@@ -109,7 +113,8 @@ const topics = {
             eu.setFromQuaternion(ex);
             return {
                 animal_pos: calcPolarCoords(pose.pose.position.latitude, pose.pose.position.longitude),
-                animal_vel: { r: 0, theta: eu.z }, // This might be wrong since animals can move, but will leave as is for now
+                animal_vel: { r: 0, psi: eu.z }, // This might be wrong since animals can move, but will leave as is for now,
+                animal_global: { lat: pose.pose.position.latitude, lng: pose.pose.position.longitude },
                 animal_type: pose.header.frame_id
             }
         }),
@@ -147,11 +152,11 @@ const topics = {
     },
     "/wamv/sensors/gps/gps/fix": {
         onMsg: (msg) => {
-            // if(referencePos.lat == referencePos.lng == 0){
             if(!referencePos){
                 referencePos = { lat: msg.latitude, lng: msg.longitude };
             }
             data.cur_pos = calcPolarCoords(msg.latitude, msg.longitude);
+            data.cur_global = { lat: msg.latitude, lng: msg.longitude };
         },
         msgType: "sensor_msgs/NavSatFix"
     },
@@ -171,7 +176,7 @@ const topics = {
                 msg.orientation.w
             );
             eu.setFromQuaternion(ex);
-            data.cur_vel.theta = eu.z;
+            data.cur_vel.psi = eu.z;
         },
         msgType: "sensor_msgs/Imu"
     },
@@ -217,8 +222,10 @@ const init = (url, setup = undefined, act = () => {}) => {
     const craft = {
         getPosition,
         getVelocity,
+        getGlobalPosition,
         getGoalPosition,
         getGoalVelocity,
+        getGoalGlobalPosition,
         getWayfindingPositions,
         getAnimalPositions,
         getBlackboxPing,
@@ -402,7 +409,7 @@ const fireBallShooter = () => {
  * Returns the crafts's current position.
  * @returns {
  *     r: float - craft's current distance from reference point (initial location on load),
- *     theta: float - craft's current angle, in radians from anticlockwise from east, from reference point (initial location on load)
+ *     psi: float - craft's current angle, in radians from anticlockwise from east, from reference point (initial location on load)
  * }
  */
 const getPosition = () => data.cur_pos;
@@ -410,11 +417,21 @@ const getPosition = () => data.cur_pos;
 /**
  * Returns the boat's current velocity.
  * @returns {
- *     r: float - current speed (estimated in m/s) of the craft travelling at theta heading,
- *     theta: float - current heading of the craft in radians from anticlockwise from east
+ *     r: float - current speed (estimated in m/s) of the craft travelling at psi heading,
+ *     psi: float - current heading of the craft in radians from anticlockwise from east
  * }
  */
 const getVelocity = () => data.cur_vel;
+
+/**
+ * Returns the boat's gloabl position.
+ * This function is mainly only used for display purposes.
+ * @returns {
+ *     lat: float - current latitude of the craft,
+ *     lng: float - current longitude of the craft
+ * }
+ */
+const getGlobalPosition = () => data.cur_global;
 
 /**
  * STATION KEEPING (TASK 1) SIMULATION ONLY
@@ -422,7 +439,7 @@ const getVelocity = () => data.cur_vel;
  * Returns undefined for other simulations.
  * @returns {
  *     r: float - goal's distance from reference point (initial location on load),
- *     theta: float - goal angle in radians from anticlockwise from east
+ *     psi: float - goal angle in radians from anticlockwise from east
  * } 
  */
 const getGoalPosition = () => data.goal_pos;
@@ -433,10 +450,20 @@ const getGoalPosition = () => data.goal_pos;
  * Returns undefined for other simulations.
  * @returns {
  *     r: float - will always return 0 since the goal isn't moving,
- *     theta: float - heading of the goal in radians from anticlockwise from east
+ *     psi: float - heading of the goal in radians from anticlockwise from east
  * } 
  */
 const getGoalVelocity = () => data.goal_vel;
+
+/**
+ * Returns the goals's gloabl position.
+ * This function is mainly only used for display purposes.
+ * @returns {
+ *     lat: float - current latitude of the goal,
+ *     lng: float - current longitude of the goal
+ * }
+ */
+const getGoalGlobalPosition = () => data.goal_global;
 
 /**
  * WAYFINDING (TASK 2) SIMULATION ONLY
@@ -445,11 +472,15 @@ const getGoalVelocity = () => data.goal_vel;
  * @returns [{
  *     goal_pos: {
  *         r: float - goal's distance from reference point (initial location on load),
- *         theta: float - goal angle in radians from anticlockwise from east
+ *         psi: float - goal angle in radians from anticlockwise from east
  *     }
  *     goal_vel: {
  *         r: float - will always return 0 since the goal isn't moving,
- *         theta: float - heading of the goal in radians from anticlockwise from east
+ *         psi: float - heading of the goal in radians from anticlockwise from east
+ *     },
+ *     goal_global: {
+ *         lat: float - latitude of the goal,
+ *         lng: float - longitude of the goal
  *     }
  * }] 
  */
@@ -460,14 +491,19 @@ const getWayfindingPositions = () => data.poses;
  * Returns the array of positions for the wayfinding task.
  * Returns undefined for other simulations.
  * @returns [{
- *     goal_pos: {
+ *     animal_pos: {
  *         r: float - goal's distance from reference point (initial location on load),
- *         theta: float - goal angle in radians from anticlockwise from east
+ *         psi: float - goal angle in radians from anticlockwise from east
  *     }
- *     goal_vel: {
+ *     animal_vel: {
  *         r: float - will always return 0 since the goal isn't moving,
- *         theta: float - heading of the goal in radians from anticlockwise from east
- *     }
+ *         psi: float - heading of the goal in radians from anticlockwise from east
+ *     },
+ *     animal_global: {
+ *         lat: float - latitude of the animal,
+ *         lng: float - longitude of the animal
+ *     },
+ *     animal_type: string - identifier
  * }] 
  */
  const getAnimalPositions = () => data.animals;
@@ -640,13 +676,18 @@ const stopSim = () =>
  * @param {float} lng 
  * @returns {
  *     r: float - distance from reference point,
- *     theta: float - angle from reference point
+ *     psi: float - angle from reference point
  * }
  */
-const calcPolarCoords = (lat, lng) => ({
+const calcPolarCoords = (lat, lng) => {
+    if(!referencePos){
+        referencePos = { lat, lng };
+    }
+    return {
         r: Math.sqrt(Math.pow(lat - referencePos.lat, 2) + Math.pow(lng - referencePos.lng, 2)),
-        theta: Math.atan((lat - referencePos.lat) / (lng - referencePos.lng))
-});
+        psi: Math.atan((lat - referencePos.lat) / (lng - referencePos.lng))
+    };
+}
 
 // Utilities for determining URLs
 const generateUrls = (url) => {

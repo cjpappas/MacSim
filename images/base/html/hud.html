@@ -201,11 +201,6 @@
           return re.exec(url)[1]
         }
 
-        const polarToLatLng = ({ r, theta }) => ({
-          lat: r * Math.sin(theta),
-          lng: r * Math.cos(theta)
-        });
-
         const setSelectValue = () => {
           switch(craft.getTaskInfo().name){
             case "station_keeping":
@@ -256,11 +251,10 @@
 
         setInterval(() => {
           // Set position of craft
-          marker.setPosition(polarToLatLng(craft.getPosition()));
-          marker.setIcon(icon(craft.getVelocity().theta, "#FFFFFF", 1));
+          marker.setPosition(craft.getGlobalPosition());
           if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             new google.maps.Marker({
-              position: polarToLatLng(craft.getGoalPosition()),
+              position: craft.getGoalGlobalPosition(),
               icon: icon(craft.getGoalVelocity(), "#05FF05", 0.5),
               map,
               title: "goal"
@@ -268,8 +262,8 @@
           } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             craft.getWayfindingPositions().forEach((position, index) => {
               new google.maps.Marker({
-                position: polarToLatLng(position.goal_pos),
-                icon: icon(position.goal_vel.theta, "#05FF05", 0.5),
+                position: position.global_pos,
+                icon: icon(position.goal_vel.psi, "#05FF05", 0.5),
                 map,
                 title: `goal ${index}`
               });
@@ -277,8 +271,8 @@
           } else if(craft.getTaskInfo().name === "wildlife" && craft.getAnimalPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             craft.getAnimalPositions().forEach((position) => {
               new google.maps.Marker({
-                position: polarToLatLng(position.animal_pos),
-                icon: icon(position.animal_vel.theta, "#05FF05", 0.5),
+                position: position.animal_global,
+                icon: icon(position.animal_vel.psi, "#05FF05", 0.5),
                 map,
                 title: position.animal_type
               });
