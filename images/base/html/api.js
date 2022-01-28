@@ -152,7 +152,7 @@ const topics = {
     },
     "/wamv/sensors/gps/gps/fix": {
         onMsg: (msg) => {
-            if(!referencePos){
+            if(!referencePos && msg.latitude != 0 && msg.longitude != 0){
                 referencePos = { lat: msg.latitude, lng: msg.longitude };
             }
             data.cur_pos = calcPolarCoords(msg.latitude, msg.longitude);
@@ -195,7 +195,7 @@ const topics = {
  * @param {string} url - The url of the simualtion.
  * @returns {Object} Contains functions to interact with simulation.
  */
-const init = (url, setup = undefined, act = () => {craft.log(craft.getPosition())}) => {
+const init = (url, setup = undefined, act = () => {}) => {
     urls = generateUrls(url);
     connection = new ROSLIB.Ros({ url: urls.ws });
     connection.on("connection", () => console.log("Connected to rosbridge server!"));
@@ -681,7 +681,7 @@ const stopSim = () =>
  */
 const calcPolarCoords = (lat, lng) => {
     if(!referencePos){
-        referencePos = { lat, lng };
+        return {r: 0, psi: 0};
     }
     var earthAvgRadius = 6367449;
     // https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree

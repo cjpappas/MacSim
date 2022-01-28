@@ -3,36 +3,29 @@ console.log(init);
 
 const craft = init("localhost");
 
-class Polar{
-  constructor(psi, mag){
-    this.psi = psi;
-    this.mag = mag;
-  }
-
-  plus(other){
-    return new Polar( this.psi + atan2(other.mag*sin(other.psi - this.psi), this.mag + other.mag*cos(other.psi-this.psi))
-    , sqrt(other.mag*other.mag + this.mag*this.mag + 2*this.mag*other.mag*cos(other.psi-this.psi))
-    );
-  }
-
-  mult(other){
-    return new Polar(this.psi, this.mag*amt);
-  }
-
-  minus(other){
-    return this.plus(other.mult(-1));
-  }
+function polarPlus(self, other){
+  return {psi: self.psi + atan2(other.r*sin(other.psi - self.psi), self.r + other.r*cos(other.psi-self.psi))
+  , r: sqrt(other.r*other.r + self.r*self.r + 2*self.r*other.r*cos(other.psi-self.psi))
+  };
 }
 
-let craftPos = new Polar(0,10);
+function polarMult(self, amt){
+  return {psi:self.psi, r: self.r*amt};
+}
+
+function polarMinus(self, other){
+  return polarPlus(self, polarMult(other, -1));
+}
 
 function draw(){
   craft.log(craft.getPosition());
   // craft.log(craft.getVelocity());
-  craft.moveForward(1);
+  craft.imm.setLeftThrusterPower(1);
+  craft.imm.setRightThrusterPower(1);
 
 }
 
 let inter = setInterval(draw, 1000);
 
 setTimeout(() => {clearInterval(inter), exit();}, 50000);
+
