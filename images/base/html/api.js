@@ -195,7 +195,7 @@ const topics = {
  * @param {string} url - The url of the simualtion.
  * @returns {Object} Contains functions to interact with simulation.
  */
-const init = (url, setup = undefined, act = () => {}) => {
+const init = (url, setup = undefined, act = () => {craft.log(craft.getPosition())}) => {
     urls = generateUrls(url);
     connection = new ROSLIB.Ros({ url: urls.ws });
     connection.on("connection", () => console.log("Connected to rosbridge server!"));
@@ -683,8 +683,14 @@ const calcPolarCoords = (lat, lng) => {
     if(!referencePos){
         referencePos = { lat, lng };
     }
+    var earthAvgRadius = 6367449;
+    // https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree
+    var lengthLatDegreeInMetres = 111132.92 - 559.82 * Math.cos(2 * lat) + 1.175 * Math.cos(4 * lat) - 0.0023 * Math.cos(6 * lat);
+    var lengthLngDegreeInMetres = (Math.PI / 180) * earthAvgRadius * Math.cos(lat);
+    var latDiff = (lat - referencePos.lat) * lengthLatDegreeInMetres;
+    var lngDiff = (lng - referencePos.lng) * lengthLngDegreeInMetres;
     return {
-        r: Math.sqrt(Math.pow(lat - referencePos.lat, 2) + Math.pow(lng - referencePos.lng, 2)),
+        r: Math.sqrt(Math.pow(latDiff, 2) + Math.pow(lngDiff, 2)),
         psi: Math.atan((lat - referencePos.lat) / (lng - referencePos.lng))
     };
 }

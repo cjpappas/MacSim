@@ -252,10 +252,11 @@
         setInterval(() => {
           // Set position of craft
           marker.setPosition(craft.getGlobalPosition());
+          marker.setIcon(icon(craft.getVelocity().psi, "#FFFFFF", 1));
           if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
             new google.maps.Marker({
               position: craft.getGoalGlobalPosition(),
-              icon: icon(craft.getGoalVelocity(), "#05FF05", 0.5),
+              icon: icon(craft.getGoalVelocity().psi, "#05FF05", 0.5),
               map,
               title: "goal"
             });
