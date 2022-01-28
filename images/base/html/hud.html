@@ -8,6 +8,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <!-- Load TensorFlow.js. This is required to use coco-ssd model. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+  <!-- Load the coco-ssd model. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"> </script>
   <script src="./api.js"></script>
 </head>
 
@@ -353,6 +357,39 @@
     
       <!-- Camera Stream -->
       <img id="camera_stream" src="/get_image" />
+      <div id="object_detection" hidden></div>
+      <!-- Tensorflow model -->
+      <script>
+        // Load the model.
+        cocoSsd.load().then(model => {
+          // Restrict to every 2 seconds to ease load on browser
+          setInterval(() => {
+            const img = document.getElementById('camera_stream');
+            const box = document.getElementById("object_detection");
+            // detect objects in the image - only if running
+            if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
+              model.detect(img).then(predictions => {
+                if(predictions.length > 0){
+                  const imageBounds = img.getBoundingClientRect();
+                  console.log(imageBounds);
+                  box.removeAttribute("hidden");
+                  box.style.border = "3px solid greenyellow";
+                  box.style.backgroundColor = "transparent";
+                  box.style.position = "absolute";
+                  box.style.left = `${imageBounds.x + predictions[0].bbox[0]}`;
+                  box.style.top = `${imageBounds.y + predictions[0].bbox[1]}`;
+                  box.style.width = `${predictions[0].bbox[2]}px`;
+                  box.style.height = `${predictions[0].bbox[3]}px`;
+                  box.style.zIndex = 999;
+                  console.log('Predictions: ', predictions);
+                }
+              }).catch((error) => console.log(error));
+            } else {
+              box.setAttribute("hidden");
+            }
+          }, 2000);
+        }).catch((error) => console.log(error));
+      </script>
       <script>
         const re = /https?:\/\/(.*)\/hud/;
 
