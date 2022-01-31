@@ -142,11 +142,13 @@
       document.getElementById("toggle-view").onclick = function(){
 
         var cam = document.getElementById("camera_stream");
+        var overlay = document.getElementById("stream_overlay");
         var map = document.getElementById("map");
 
         // switch to camera view
         if(map.style.width == "65%"){
           document.getElementById("body-content").append(cam);
+          document.getElementById("body-content").append(overlay);
           document.getElementById("bottom-panel").append(map);
           cam.style.width = "65%";
           map.style.width = "100%";
@@ -155,6 +157,7 @@
         } else {
           document.getElementById("body-content").append(map);
           document.getElementById("bottom-panel").append(cam);
+          document.getElementById("bottom-panel").append(overlay);
           cam.style.width = "50%";
           map.style.width = "65%";
         }
@@ -357,7 +360,7 @@
     
       <!-- Camera Stream -->
       <img id="camera_stream" src="/get_image" />
-      <div id="object_detection" hidden></div>
+      <canvas id="stream_overlay" width="0" height="0" style="" />
       <!-- Tensorflow model -->
       <script>
         // Load the model.
@@ -365,29 +368,44 @@
           // Restrict to every 2 seconds to ease load on browser
           setInterval(() => {
             const img = document.getElementById('camera_stream');
-            const box = document.getElementById("object_detection");
+            const imgBound = img.getBoundingClientRect();
+            const canvas = document.getElementById("stream_overlay");
+
+            canvas.style.position = "absolute";
+            canvas.style.x = imgBound.x + "px";
+            canvas.style.y = imgBound.y + "px";
+            canvas.style.zIndex = 999;
+            canvas.setAttribute("width", imgBound.width)
+            canvas.setAttribute("height", imgBound.height);
+
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            const font = "16px sans-serif";
+            ctx.font = font;
+            ctx.textBaseline = "top";
             // detect objects in the image - only if running
             if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
               model.detect(img).then(predictions => {
-                if(predictions.length > 0){
-                  const imageBounds = img.getBoundingClientRect();
-                  console.log(imageBounds);
-                  box.removeAttribute("hidden");
-                  box.style.border = "3px solid greenyellow";
-                  box.style.backgroundColor = "transparent";
-                  box.style.position = "absolute";
-                  box.style.left = `${imageBounds.x + predictions[0].bbox[0]}`;
-                  box.style.top = `${imageBounds.y + predictions[0].bbox[1]}`;
-                  box.style.width = `${predictions[0].bbox[2]}px`;
-                  box.style.height = `${predictions[0].bbox[3]}px`;
-                  box.style.zIndex = 999;
-                  console.log('Predictions: ', predictions);
-                }
+                predictions.forEach(p => {
+                  // Bounding box
+                  ctx.strokeStyle = "yellowgreen";
+                  ctx.lineWidth = 3;
+                  ctx.strokeRect(p["bbox"][0], p["bbox"][1], p["bbox"][2], p["bbox"][3])
+                  // Label box
+                  ctx.fillStyle = "yellowgreen";
+                  const textWidth = ctx.measureText(p["label"] + " " + (100 * p["score"]).toFixed(2) + "%").width;
+                  const textHeight = parseInt(font, 10); // base 10
+                  ctx.fillRect(p["bbox"][0], p["bbox"][1], textWidth + 4, textHeight + 4);
+                  // Label
+                  ctx.fillStyle = "#000000";
+                  ctx.fillText(p["class"] + " " + (100*p["score"]).toFixed(2) + "%", p["bbox"][0], p["bbox"][1]);
+                });
               }).catch((error) => console.log(error));
             } else {
               box.setAttribute("hidden");
             }
-          }, 2000);
+          }, 1000);
         }).catch((error) => console.log(error));
       </script>
       <script>
