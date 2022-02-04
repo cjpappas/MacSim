@@ -40,7 +40,7 @@
           icon: "error"
         });
       } else {
-        const encodedProgram = encodeURI(btoa(program));
+        const encodedProgram = encodeURIComponent(btoa(program));
         const error = encodedProgram.length > 2000 ? "Your program is over the recommended 2000 characters. This may lead to issues with your link. If this occurs, please decode the code variable within the link manually." : "";
         swal({
           title: "Share program",
@@ -301,7 +301,7 @@
         editor.session.setMode("ace/mode/javascript");
         // Base64 encoded demo
         if(params.has("code")){
-          editor.setValue(atob(params.get("code")));
+          editor.setValue(decodeURI(atob(params.get("code"))));
         }
       }
     </script>
