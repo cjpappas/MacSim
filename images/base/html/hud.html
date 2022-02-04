@@ -136,25 +136,52 @@
     <!-- Toggle view -->
     <button class="push hud-link" id="toggle-view">Toggle View</button>
     <script>
+      const updateOverlay = () => {
+        const img = document.getElementById('camera_stream');
+        const imgBound = img.getBoundingClientRect();
+        const canvas = document.getElementById("stream_overlay");
+
+        canvas.style.position = "absolute";
+        canvas.style.x = imgBound.x + "px";
+        canvas.style.y = imgBound.y + "px";
+        canvas.style.zIndex = 999;
+        canvas.setAttribute("width", imgBound.width)
+        canvas.setAttribute("height", imgBound.height);
+
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      }
+
+      const clearOverlay = () => {
+        const canvas = document.getElementById("stream_overlay");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      }
+
       // Toggle map and camera to switch place 
       document.getElementById("toggle-view").onclick = function(){
 
         var cam = document.getElementById("camera_stream");
+        var overlay = document.getElementById("stream_overlay");
         var map = document.getElementById("map");
 
         // switch to camera view
         if(map.style.width == "65%"){
           document.getElementById("body-content").append(cam);
+          document.getElementById("body-content").append(overlay);
           document.getElementById("bottom-panel").append(map);
           cam.style.width = "65%";
           map.style.width = "100%";
-          
+          updateOverlay();
+
         // switch to map view
         } else {
           document.getElementById("body-content").append(map);
           document.getElementById("bottom-panel").append(cam);
+          document.getElementById("bottom-panel").append(overlay);
           cam.style.width = "50%";
           map.style.width = "65%";
+          updateOverlay();
         }
       };
     </script>
@@ -355,6 +382,29 @@
     
       <!-- Camera Stream -->
       <img id="camera_stream" src="/get_image" />
+      <canvas id="stream_overlay" width="0" height="0" style="" />
+      <script>
+        const displayBoundingBox = (x, y, width, height, label, score) => {
+          const ctx = document.getElementById("stream_overlay").getContext("2d");
+          const font = "16px sans-serif";
+          ctx.font = font;
+          ctx.textBaseline = "top"; 
+          // Bounding box
+          ctx.strokeStyle = "yellowgreen";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(x, y, width, height);
+          console.log(ctx.strokeRect);
+          // Label box
+          ctx.fillStyle = "yellowgreen";
+          const textWidth = ctx.measureText(`${label} ${(100 * score).toFixed(2)}%`).width;
+          const textHeight = parseInt(font, 10); // base 10
+          ctx.fillRect(x, y, textWidth + 4, textHeight + 4);
+          // Label
+          ctx.fillStyle = "#000000";
+          ctx.fillText(`${label} ${(100 * score).toFixed(2)}%`, x, y);
+        }
+      </script>
+
       <script>
         const re = /https?:\/\/(.*)\/hud/;
 
