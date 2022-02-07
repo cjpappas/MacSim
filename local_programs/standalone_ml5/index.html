@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Object Detection</title>
+    <!-- p5 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.min.js"></script>
+    <!-- ml5 -->
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+  </head>
+
+  <body>
+    <img id="camera_stream" src="http://localhost:8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw" style="visibility: visible;">
+    <script src="sketch.js"></script>
+  </body>
+</html>
