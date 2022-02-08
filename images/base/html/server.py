@@ -7,6 +7,7 @@ sims = {
     "wayfinding": "wayfinding.launch",
     "perception": "perception_task.launch" ,
     "perception_2": "perception_task2.launch" ,
+    "perception_3": "perception_task3.launch" ,
     "wildlife": "wildlife.launch",
     "gymkhana": "gymkhana.launch",
     "scan_dock_deliver": "scan_dock_deliver.launch"

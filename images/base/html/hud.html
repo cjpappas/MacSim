@@ -132,6 +132,7 @@
       <option value="gymkhana">5. Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
       <option value="scan_dock_deliver">6. Scan and Dock and Deliver</option>
       <option value="perception_2">7. Object Localisation and Characterisation V2</option>
+      <option value="perception_3">7. Object Localisation and Characterisation V3</option>
     </select>
 
     <!-- Toggle view -->
@@ -253,6 +254,9 @@
               break;
             case "perception_2":
               document.getElementById("sim-select").selectedIndex = 6;
+              break;
+            case "perception_3":
+              document.getElementById("sim-select").selectedIndex = 7;
               break;
             default:
               document.getElementById("sim-select").selectedIndex = 0;

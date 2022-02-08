@@ -355,6 +355,7 @@ xacro_add_files(
   worlds/gymkhana.world.xacro
   worlds/perception_task.world.xacro
   worlds/perception_task2.world.xacro
+  worlds/perception_task3.world.xacro
   worlds/scan_dock_deliver.world.xacro
   worlds/stationkeeping_task.world.xacro
   worlds/sydneyregatta.world.xacro

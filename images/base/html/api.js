@@ -649,7 +649,8 @@ const sims = [
     "wildlife",
     "gymkhana",
     "scan_dock_deliver",
-    "perception_2"
+    "perception_2",
+    "perception_3"
 ];
 
 /**
