@@ -659,6 +659,11 @@ const sims = [
  */
 const startSim = (type) => {
     if(sims.includes(type)){
+        // THIS IS A HACK FIX MEEEEEEE
+        console.log(type);
+        if(type === "gymkhana"){
+            data.task = { name: "Gymkhana", state: "running", ready_time: 0, running_time: 0, elapsed_time: 0, remaining_time: 0, timed_out: false, score: 0.0 };
+        }
         return axios.post(`${urls.server}/api/start_sim`, { sim: type });
     }
 }
