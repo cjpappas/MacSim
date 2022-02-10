@@ -7,14 +7,12 @@ RUN apt-get update && apt-get install -y ros-noetic-ros-base nano nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy over script to Docker container
-COPY ./run_my_system.bash /
+COPY images/submission/run_my_system.bash /
 
 # Use your ros_entrypoint
-COPY ./ros_entrypoint.sh /
+COPY images/submission/ros_entrypoint.sh /
 
 # Copy over src
 RUN mkdir /home/macsim
-COPY ./src /home/macsim/src
-
-
-
+RUN cd /home/macsim && npm install three axios roslib
+COPY images/submission/src /home/macsim/src

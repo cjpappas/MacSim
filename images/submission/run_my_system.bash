@@ -12,4 +12,4 @@ else
 fi
 
 # Start our program
-node main.js
+node /home/macsim/src/main.js
