@@ -11,5 +11,9 @@ else
     echo "rosmaster already setup"
 fi
 
+# Add devel stuff to path
+source /home/developer/vrx_ws/devel/setup.bash
+# Start rosbridge server
+roslaunch rosbridge_server rosbridge_websocket.launch &
 # Start our program
-node /home/macsim/src/main.js
+IP=$COMPETITOR_IP node /home/macsim/src/main.js

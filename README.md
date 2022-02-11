@@ -64,3 +64,26 @@ This will output the encoded program string to the console, which you can then s
 
 ## Troubleshooting
 If your docker build fails, try increasing the memory and the swap file available to docker (docker desktop > preferences).
+
+## Submission Image
+To build to submission image:
+```bash
+docker build -t altmattr/macsim-submission -f ./images/submission/Dockerfile .
+```
+
+To run the submission image:
+```bash
+docker run -it \
+    --name macsim-submission \
+    -v <path_to_repo>/MacSim/images/submission/src:/home/macsim/src \
+    altmattr/macsim-submission
+``` 
+
+The submission image is expecting an eviroment variable `COMPETITOR_IP` to be set by the test script. If you want to run the image **without** the test script, add the enviroment variable to `docker run`:
+```bash
+docker run -it \
+    -e COMPETITOR_IP=localhost \
+    --name macsim-submission \
+    -v <path_to_repo>/MacSim/images/submission/src:/home/macsim/src \
+    altmattr/macsim-submission
+```

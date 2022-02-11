@@ -3,7 +3,7 @@
 FROM ros:noetic-ros-base
 
 # install ros packages
-RUN apt-get update && apt-get install -y ros-noetic-ros-base nano nodejs npm \
+RUN apt-get update && apt-get install -y ros-noetic-ros-base ros-noetic-rosbridge-suite nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy over script to Docker container
