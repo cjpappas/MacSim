@@ -1,8 +1,24 @@
-const { init } = require("./api");
+ROSLIB = require("roslib");
 
-const craft = init(process.env.IP);
+const ws_url = `ws://0.0.0.0:9090`;
 
-while (true){
+console.log(`attempting to connect on ${ws_url}`)
+connection = new ROSLIB.Ros({ url: ws_url});
+connection.on("connection", () => {console.log("Connected to rosbridge server!"); setup_connection()});
+connection.on("error", () => console.log("Error connecting to rosbridge"));
+connection.on("close", () => console.log("Connection to rosbridge server closed."));
+
+function setup_connection(){
+  info = new ROSLIB.Topic({
+    ros:connection,
+    name: "/vrx/task/info",
+    messageType: "vrx_gazebo/Task"
+  });
+  info.subscribe((message)=>{
+    console.log('Received message on ' + listener.name + ': ' + message.data);
+  })
+}
+while (false){
   if(craft.data.task.state === "running"){
     switch(craft.data.task.name){
       case "station_keeping":   while_running(station_keeping, craft);   break;

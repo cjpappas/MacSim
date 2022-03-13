@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "running my script"
 # Create ros master if not already started
 rostopic list > /dev/null 2>&1
 retVal=$?
@@ -15,5 +15,7 @@ fi
 source /home/developer/vrx_ws/devel/setup.bash
 # Start rosbridge server
 roslaunch rosbridge_server rosbridge_websocket.launch &
+sleep 8s
 # Start our program
-IP=$COMPETITOR_IP node /home/macsim/src/main.js
+printenv
+node /home/macsim/src/main.js
