@@ -11,7 +11,8 @@ else
     echo "rosmaster already setup"
 fi
 
-# Add devel stuff to path
+# Add devel stuff to path TODO: not working since that file is not there
+
 source /home/developer/vrx_ws/devel/setup.bash
 # Start rosbridge server
 roslaunch rosbridge_server rosbridge_websocket.launch &
