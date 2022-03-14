@@ -21,9 +21,17 @@ def index():
 def hud():
     return send_from_directory("", "hud.html")
 
+@app.route("/hud-min")
+def hud_min():
+    return send_from_directory("", "hud-min.html")
+
 @app.route("/style")
 def style():
     return send_from_directory("", "style.css")
+
+@app.route("/style-min")
+def style_min():
+    return send_from_directory("", "style-min.css")
 
 @app.route("/api.js")
 def api():
