@@ -12,9 +12,14 @@ tasks:
     init: pip install flask
     command: |
       export FLASK_APP=/home/developer/html/server.py
-      python3 -m flask run --host=0.0.0.0 --port=8090
+      python3 -m flask run --host=0.0.0.0 --port=8090 &
+      gp preview `gp url 8090`/hud-min
   - name: Start Simulation
     command: |
       source /home/developer/vrx_ws/devel/setup.bash
       roslaunch rosbridge_server rosbridge_websocket.launch &
       rosrun web_video_server web_video_server & 
+  - name: Node Place
+    init: |
+      apt install -y nodejs npm
+      npm install three axios roslib
