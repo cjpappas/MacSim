@@ -1,0 +1,20 @@
+image: altmattr/simulation:latest
+
+ports:
+  - port: 8090
+    onOpen: open-browser
+  - port: 4000-88000
+    visibility: public
+    onOpen: ignore
+
+tasks:
+  - name: Start Server
+    init: pip install flask
+    command: |
+      export FLASK_APP=/home/developer/html/server.py
+      python3 -m flask run --host=0.0.0.0 --port=8090
+  - name: Start Simulation
+    command: |
+      source /home/developer/vrx_ws/devel/setup.bash
+      roslaunch rosbridge_server rosbridge_websocket.launch &
+      rosrun web_video_server web_video_server & 
