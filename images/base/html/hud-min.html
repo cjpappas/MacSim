@@ -1,0 +1,102 @@
+<html>
+<meta charset="UTF-8">
+<head>
+  <link rel="stylesheet" type="text/css" href="/style-min"/>
+  <title>MacSim HUD</title>
+  <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="./api.js"></script>
+</head>
+
+<body>
+  <div id="main-content">
+    <!-- Google Maps Display -->
+    <div id="map">
+      <script>
+        const icon = (rotation, colour, scale) => ({
+          path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
+          fillOpacity: 1,
+          fillColor: colour,
+          scale:0.5*scale, 
+          rotation:(rotation/(Math.PI))*-180
+        });
+        
+        const getAddress = () => {
+          const url = window.location.href;
+          const re = /https?:\/\/(.*)\/hud/;
+          return re.exec(url)[1]
+        }
+
+        let craft = init(getAddress());
+        var map;
+        var marker;
+        let simStarted = false;
+
+        function initMap() {
+          map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -33.7224, lng: 150.67398},
+            zoom: 18,
+            disableDefaultUI: true,
+            scaleControl: true,
+            zoomControl: true,
+            mapTypeId: "satellite",
+          });
+          marker = new google.maps.Marker({
+            position: {lat: -33.722, lng:150.67398},
+            icon: icon(Math.PI/2, "#FFFFFF", 1),
+            map,
+            title: "craft",
+          });
+        }
+
+        setInterval(() => {
+          // Set position of craft
+          marker.setPosition(craft.getGlobalPosition());
+          marker.setIcon(icon(craft.getVelocity().psi, "#FFFFFF", 1));
+          if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            new google.maps.Marker({
+              position: craft.getGoalGlobalPosition(),
+              icon: icon(craft.getGoalVelocity().psi, "#05FF05", 0.5),
+              map,
+              title: "goal"
+            });
+          } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            craft.getWayfindingPositions().forEach((position, index) => {
+              new google.maps.Marker({
+                position: position.goal_global,
+                icon: icon(position.goal_vel.psi, "#05FF05", 0.5),
+                map,
+                title: `goal ${index}`
+              });
+            });
+          } else if(craft.getTaskInfo().name === "wildlife" && craft.getAnimalPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
+            craft.getAnimalPositions().forEach((position) => {
+              new google.maps.Marker({
+                position: position.animal_global,
+                icon: icon(position.animal_vel.psi, "#05FF05", 0.5),
+                map,
+                title: position.animal_type
+              });
+            });
+          }
+        }, 500);
+      </script>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
+      async defer></script>
+    </div>
+    <img id="camera_stream" src="/get_image" />
+    <script>
+      const re = /https?:\/\/(.*)\/hud/;
+      //Check if simulation is ready, make camera visible and set source
+      var cameraCheck = setInterval(() => {
+        if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
+          document.getElementById("camera_stream").style.visibility = "visible";
+          document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+          clearInterval(cameraCheck);
+        }
+      }, 1000);
+    </script>
+  </div>
+</body>
+</html>
