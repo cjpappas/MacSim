@@ -1,8 +1,6 @@
 image: altmattr/simulation:latest
 
 ports:
-  - port: 8090
-    onOpen: open-browser
   - port: 4000-88000
     visibility: public
     onOpen: ignore
@@ -19,7 +17,3 @@ tasks:
       source /home/developer/vrx_ws/devel/setup.bash
       roslaunch rosbridge_server rosbridge_websocket.launch &
       rosrun web_video_server web_video_server & 
-  - name: Node Place
-    init: |
-      apt install -y nodejs npm
-      npm install three axios roslib
