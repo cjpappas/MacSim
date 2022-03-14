@@ -10,7 +10,7 @@ RUN sudo apt-get update && sudo apt-get install -y x11-apps ros-noetic-rosbridge
 RUN pip install Flask
 
 # Install npm deps for running local programs inside container
-RUN npm install -g three axios roslib
+RUN sudo npm install -g three axios roslib
 
 # Setup fake display so gazebo publishes camera info
 # https://github.com/PX4/PX4-containers/issues/198
