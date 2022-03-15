@@ -21,8 +21,10 @@ a {
 }
 
 #camera_stream {
-  height: 300px;
-  width: 400px;
+  max-height: 300px;
+  max-width: 400px;
+  height: calc(100% * calc(3.0 / 7.0) * 0.8);
+  width: calc(100% * calc(4.0 / 7.0) * 0.6);
   z-index: 998;
   position: absolute;
   background: white;
