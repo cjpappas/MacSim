@@ -87,7 +87,7 @@
     </div>
     <img id="camera_stream" src="" />
     <script>
-      document.getElementById("camera_stream").setAttribute("src", window.location.href.replace("8090", "8080"));
+      document.getElementById("camera_stream").setAttribute("src", window.location.href.replace("8090", "8080").replace("hud-min", "stream_viewer?topic=/wamv/sensors/cameras/front_left_camera/image_raw"));
     </script>
     <script>
       const re = /https?:\/\/(.*)\/hud/;
