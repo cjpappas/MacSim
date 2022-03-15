@@ -20,4 +20,4 @@ tasks:
       rosrun web_video_server web_video_server & 
   - name: Node Playground
     command: |
-      npm install three axios roslib
+      npm install three axios roslib @tensorflow/tfjs

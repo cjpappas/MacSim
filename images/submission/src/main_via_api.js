@@ -11,6 +11,7 @@ function setup(){
 function act(){
     console.log("acting");
     console.log(craft.getTaskInfo())
+    console.log(craft.getImages().front_left.width)
     if (craft.getTaskInfo().state === "finished"){
         process.exit();
     }
