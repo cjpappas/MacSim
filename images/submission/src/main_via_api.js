@@ -1,5 +1,7 @@
+// import * as tf from '@tensorflow/tfjs';
+
 const { init, startSim } = require("./api.js");
-const {spawn} = require("child_process");
+const tf                 = require("@tensorflow/tfjs");
 
 
 const craft = init("0.0.0.0", setup, act);
@@ -16,5 +18,12 @@ function act(){
         process.exit();
     }
 }
-
-startSim("perception");
+console.log(tf);
+tf.loadGraphModel("https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json")
+  .then(detector => {
+    console.log("made it, about to execute model");
+    detector.predict(craft.getImages().front_left.data);
+    // startSim("perception");
+  })
+  .catch((error) => console.log(error))
+  .finally(() => console.log("all done (finally)"));
