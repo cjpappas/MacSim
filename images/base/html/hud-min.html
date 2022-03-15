@@ -85,7 +85,10 @@
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>
     </div>
-    <img id="camera_stream" src="/get_image" />
+    <img id="camera_stream" src="" />
+    <script>
+      document.getElementById("camera_stream").setAttribute("src", window.location.href.replace("8090", "8080"));
+    </script>
     <script>
       const re = /https?:\/\/(.*)\/hud/;
       //Check if simulation is ready, make camera visible and set source
