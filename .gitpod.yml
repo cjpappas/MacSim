@@ -7,7 +7,6 @@ ports:
 
 tasks:
   - name: Start Server
-    init: pip install flask
     command: |
       pip install flask
       export FLASK_APP=/home/developer/html/server.py
@@ -20,4 +19,4 @@ tasks:
       rosrun web_video_server web_video_server & 
   - name: Node Playground
     command: |
-      npm install three axios roslib
+      npm install three axios roslib @tensorflow/tfjs
