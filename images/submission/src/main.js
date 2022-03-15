@@ -9,13 +9,14 @@ connection.on("error", () => console.log("Error connecting to rosbridge"));
 connection.on("close", () => console.log("Connection to rosbridge server closed."));
 
 function setup_connection(){
-  info = new ROSLIB.Topic({
+  console.log("setting up connection")
+  const info = new ROSLIB.Topic({
     ros:connection,
     name: "/vrx/task/info",
     messageType: "vrx_gazebo/Task"
   });
   info.subscribe((message)=>{
-    console.log('Received message on ' + listener.name + ': ' + message.data);
+    console.log('Received message on ' + info.name + ' message was: ' + message.state);
   })
 }
 while (false){

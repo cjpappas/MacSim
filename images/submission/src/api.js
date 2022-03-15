@@ -700,7 +700,7 @@ const calcPolarCoords = (lat, lng) => {
 // Utilities for determining URLs
 const generateUrls = (url) => {
     return {
-        server: `http://${url}`,
+        server: `http://${url}:8090`,
         ws: `ws://${url}:9090`,
         stream: `http://${url}:8080`
     }
