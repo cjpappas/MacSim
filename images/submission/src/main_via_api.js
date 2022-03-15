@@ -11,6 +11,9 @@ function setup(){
 function act(){
     console.log("acting");
     console.log(craft.getTaskInfo())
+    if (craft.getTaskInfo().state === "finished"){
+        process.exit();
+    }
 }
 
 startSim("perception");
