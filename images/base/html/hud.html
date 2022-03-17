@@ -76,6 +76,12 @@
     <!-- Start Simulation -->
     <button class="hud-link" id="sim-start">Start Simulation</button>
     <script>
+      const getAddress = () => {
+        const url = window.location.href;
+        const re = /https?:\/\/(.*)\/hud/;
+        return re.exec(url)[1]
+      }
+
       var started = false;
       document.getElementById("sim-start").onclick = () => {
         document.getElementById("sim-start").classList.add("hud-link-disabled");
@@ -94,7 +100,7 @@
 
           // choose the selected sim to run 
           const select = document.getElementById("sim-select");
-          startSim(select.options[select.selectedIndex].value)
+          startSim(select.options[select.selectedIndex].value, `http://${getAddress()}`);
         }
       }
     </script>
@@ -118,7 +124,7 @@
         } else {
           document.getElementById("sim-stop").classList.add("hud-link-disabled");
           document.getElementById("execute").classList.add("hud-link-disabled");
-          stopSim().then(() => document.getElementById("sim-start").classList.remove("hud-link-disabled"));
+          stopSim(`http://${getAddress()}`).then(() => document.getElementById("sim-start").classList.remove("hud-link-disabled"));
         }
       };
     </script>
@@ -226,11 +232,11 @@
           rotation:(rotation/(Math.PI))*-180
         });
         
-        const getAddress = () => {
-          const url = window.location.href;
-          const re = /https?:\/\/(.*)\/hud/;
-          return re.exec(url)[1]
-        }
+        // const getAddress = () => {
+        //   const url = window.location.href;
+        //   const re = /https?:\/\/(.*)\/hud/;
+        //   return re.exec(url)[1]
+        // }
 
         const setSelectValue = () => {
           switch(craft.getTaskInfo().name){
@@ -264,7 +270,16 @@
           }
         }
 
-        let craft = init(getAddress());
+        const getWsAddress = () => {
+          const address = getAddress();
+          if(address.includes("gitpod")){
+            return `ws://${address.replace("8090", "9090")}`;
+          } else {
+            return `ws://${address}:9090`;
+          }
+        }
+
+        let craft = init(getWsAddress());
         var map;
         var marker;
         let simStarted = false;

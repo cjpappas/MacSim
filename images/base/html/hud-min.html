@@ -24,11 +24,21 @@
         
         const getAddress = () => {
           const url = window.location.href;
-          const re = /https?:\/\/(.*)\/hud/;
+          const re = /https?:\/\/(.*)\/hud-min/;
           return re.exec(url)[1]
         }
 
-        let craft = init(getAddress());
+        const getWsAddress = () => {
+          const address = getAddress();
+          if(address.includes("gitpod")){
+            return `ws://${address.replace("8090", "9090")}`;
+          } else {
+            return `ws://${address}:9090`;
+          }
+        }
+
+        // let craft = init(getAddress());
+        let craft = init(getWsAddress())
         var map;
         var marker;
         let simStarted = false;
@@ -85,18 +95,30 @@
       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
       async defer></script>
     </div>
-    <img id="camera_stream" src="" />
+    <canvas id="camera_stream" />
     <script>
-      document.getElementById("camera_stream").setAttribute("src", window.location.href.replace("8090", "8080").replace("hud-min", "stream_viewer?topic=/wamv/sensors/cameras/front_left_camera/image_raw"));
-    </script>
-    <script>
-      const re = /https?:\/\/(.*)\/hud/;
-      //Check if simulation is ready, make camera visible and set source
-      var cameraCheck = setInterval(() => {
+      const canvas = document.getElementById("camera_stream");
+      setInterval(() => {
         if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
-          document.getElementById("camera_stream").style.visibility = "visible";
-          document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
-          clearInterval(cameraCheck);
+          const streamData = craft.getImages().front_left;
+          canvas.width = streamData.width;
+          canvas.height = streamData.height;
+          const context = canvas.getContext("2d");
+          const imageData = context.createImageData(streamData.width, streamData.height);
+          const inData = atob(streamData.data);
+          
+          let streamIndex = 0;
+          let imageIndex = 0;
+          while(streamIndex < streamData.data.length){
+            imageData.data[imageIndex++] = inData.charCodeAt(streamIndex++);
+            imageData.data[imageIndex++] = inData.charCodeAt(streamIndex++);
+            imageData.data[imageIndex++] = inData.charCodeAt(streamIndex++);
+            imageData.data[imageIndex++] = 255; // alpha
+          }
+          context.putImageData(imageData, 0, 0);
+        } else {
+          canvas.getContext("2d").font = "20px Arial";
+          canvas.getContext("2d").fillText("No stream data!", 10, 50);
         }
       }, 1000);
     </script>
