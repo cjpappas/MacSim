@@ -238,7 +238,7 @@ const init = (wsUrl, setup = undefined, act = () => {}) => {
   connection.on("connection", () =>
     console.log("Connected to rosbridge server!")
   );
-  connection.on("error", () => setTimeout(() => init(url, setup, act), 1000));
+  connection.on("error", () => setTimeout(() => init(wsUrl, setup, act), 1000));
   connection.on("close", () =>
     console.log("Connection to rosbridge server closed.")
   );
