@@ -15,7 +15,7 @@ tasks:
   - name: Start Simulation
     command: |
       source /home/developer/vrx_ws/devel/setup.bash
-      roslaunch rosbridge_server rosbridge_websocket.launch port:=9090 websocket_external_port:=80 &
+      roslaunch rosbridge_server rosbridge_websocket.launch port:=9090 &
       rosrun web_video_server web_video_server _port:=8091 & 
   - name: Node Playground
     command: |
