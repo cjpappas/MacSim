@@ -22,23 +22,6 @@
             rotation: (rotation / Math.PI) * -180,
           });
 
-          const getAddress = () => {
-            const url = window.location.href;
-            const re = /https?:\/\/(.*)\/hud-min/;
-            return re.exec(url)[1];
-          };
-
-          const getWsAddress = () => {
-            const address = getAddress();
-            if (address.includes("gitpod")) {
-              return `ws://${address.replace("8090", "9090")}`;
-            } else {
-              return `ws://${address}:9090`;
-            }
-          };
-
-          // let craft = init(getAddress());
-          // let craft = init(getWsAddress());
           let craft = init("ws://localhost:9090");
           var map;
           var marker;
@@ -114,6 +97,20 @@
           defer
         ></script>
       </div>
+      <!-- Connection indicator -->
+      <h2 id="connection_indicator"></h2>
+      <script>
+        const indicator = document.getElementById("connection_indicator");
+        setInterval(() => {
+          indicator.textContent = connectionStatus;
+          indicator.style.color =
+            connectionStatus === "Connected"
+              ? "green"
+              : connectionStatus === "Closed"
+              ? "yellow"
+              : "red";
+        }, 1000);
+      </script>
       <canvas id="camera_stream" />
       <script>
         const canvas = document.getElementById("camera_stream");

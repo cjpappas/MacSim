@@ -10,6 +10,7 @@ if (env === "node") {
 }
 
 let connection;
+let connectionStatus = "Not connected.";
 const initialData = {
   cur_pos: { r: 0, psi: 0 },
   cur_vel: { r: 0, psi: 0 },
@@ -232,16 +233,19 @@ const topics = {
  * @returns {Object} Contains functions to interact with simulation.
  */
 const init = (wsUrl, setup = undefined, act = () => {}) => {
-  //   urls = generateUrls(url);
-  //   connection = new ROSLIB.Ros({ url: urls.ws });
   connection = new ROSLIB.Ros({ url: wsUrl });
-  connection.on("connection", () =>
-    console.log("Connected to rosbridge server!")
-  );
-  connection.on("error", () => setTimeout(() => init(wsUrl, setup, act), 1000));
-  connection.on("close", () =>
-    console.log("Connection to rosbridge server closed.")
-  );
+  connection.on("connection", () => {
+    console.log("Connected to rosbridge server!");
+    connectionStatus = "Connected";
+  });
+  connection.on("error", () => {
+    connectionStatus = "Error: Trying again in 1 second";
+    setTimeout(() => init(wsUrl, setup, act), 1000);
+  });
+  connection.on("close", () => {
+    console.log("Connection to rosbridge server closed.");
+    connectionStatus = "Closed";
+  });
   Object.keys(topics).forEach((topic) => {
     const listener = new ROSLIB.Topic({
       ros: connection,
