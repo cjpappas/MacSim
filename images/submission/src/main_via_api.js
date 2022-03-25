@@ -1,10 +1,9 @@
-// import * as tf from '@tensorflow/tfjs';
-
 const { init, startSim } = require("./api.js");
 const tf                 = require("@tensorflow/tfjs");
 
 
 const craft = init("0.0.0.0", setup, act);
+startSim("perception");
 
 function setup(){
     console.log("setting up");
@@ -12,18 +11,33 @@ function setup(){
 
 function act(){
     console.log("acting");
-    console.log(craft.getTaskInfo())
-    console.log(craft.getImages().front_left.width)
-    if (craft.getTaskInfo().state === "finished"){
-        process.exit();
+    // const img_width = craft.getImages().front_left.width;
+    // const img_height = craft.getImages().front_left.height;
+    // const img_data = Buffer.from(craft.getImages().front_left.data, "base64").toString('binary');
+    // for(var x= 0; x < 90; x++){
+    //     for(var y = 0; y < 200; y++){
+    //         const pos = (x*img_width + y)*3;
+    //         const r = img_data.charCodeAt(pos);
+    //         const g = img_data.charCodeAt(pos+1);
+    //         const b = img_data.charCodeAt(pos+2);
+    //         process.stdout.write(`\u001b[48;2;${r};${g};${b}m `);
+    //     }
+    //     process.stdout.write("\n");
+    // }
+    // if (craft.getTaskInfo().state === "finished"){
+    //     process.exit();
     }
-}
+
 console.log(tf);
-tf.loadGraphModel("https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json")
+tf.loadLayersModel("https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json")
   .then(detector => {
     console.log("made it, about to execute model");
-    detector.predict(craft.getImages().front_left.data);
+    console.log("input shape is ", detector.inputs[0].shape);
+    console.log("output shape is ", detector.outputs[0].shape);
+    var prediction = detector.predict(tf.zeros([1,224,224,3]));
+    prediction.argMax(1).print();
+    // detector.predict(craft.getImages().front_left.data);
     // startSim("perception");
   })
   .catch((error) => console.log(error))
-  .finally(() => console.log("all done (finally)"));
+  .finally(() => console.log("all done with the prediction (finally)"));
