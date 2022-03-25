@@ -1,433 +1,575 @@
 <html>
-<meta charset="UTF-8">
-<head>
-  <link rel="stylesheet" type="text/css" href="/style"/>
-  <title>MacSim HUD</title>
-  <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js" integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-  <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
-  <script src="./api.js"></script>
-</head>
+  <meta charset="UTF-8" />
+  <head>
+    <link rel="stylesheet" type="text/css" href="/style" />
+    <title>MacSim HUD</title>
+    <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js"
+      integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-javascript.min.js"
+      integrity="sha512-37ta5K4KVYs+MEmIg2xnZxJrdiQmBSKt+JInvyPrq9uz7aF67lMJT/t91EYoYj520jEcGlih41kCce7BRTmE3Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <script src="./api.js"></script>
+  </head>
 
-<body>
-<div id="main-content">
-  <h1 id="loader" style=" width: 100%; height: 100%; z-index: 999; background-color: rgba(0, 0, 0, 0.4); 
-  color: white; position: absolute; margin-top: 0; text-align: center; display:flex; align-items: center;
-  justify-content: center; visibility: hidden;">Loading...</h1>
-  <nav>
-    <a class="item" href="/">Team Boat</a>
-    <a class="push item" href="/">Home</a>
-    <a class="item" href="/hud">Simulation</a>
-    <a class="item" href="https://github.com/osrf/vrx/blob/master/README.md">Documentation</a>
-  </nav>
-  
-  <div id="control-panel">
+  <body>
+    <div id="main-content">
+      <h1
+        id="loader"
+        style="
+          width: 100%;
+          height: 100%;
+          z-index: 999;
+          background-color: rgba(0, 0, 0, 0.4);
+          color: white;
+          position: absolute;
+          margin-top: 0;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          visibility: hidden;
+        "
+      >
+        Loading...
+      </h1>
+      <nav>
+        <a class="item" href="/">Team Boat</a>
+        <a class="push item" href="/">Home</a>
+        <a class="item" href="/hud">Simulation</a>
+        <a class="item" href="https://github.com/osrf/vrx/blob/master/README.md"
+          >Documentation</a
+        >
+      </nav>
 
-    <!-- API.js Link -->
-    <a class="hud-link" href="api.js">api.js</a>
+      <div id="control-panel">
+        <!-- API.js Link -->
+        <a class="hud-link" href="api.js">api.js</a>
 
-    <!-- Share  -->
-    <button class="hud-link" id="share">Share</button>
-    <script>
-      document.getElementById("share").onclick = function(){
-      const program = editor.getValue();
-      if(program === ""){
-        swal({
-          title: "No code to share :(",
-          icon: "error"
-        });
-      } else {
-        const encodedProgram = encodeURIComponent(btoa(program));
-        const error = encodedProgram.length > 2000 ? "Your program is over the recommended 2000 characters. This may lead to issues with your link. If this occurs, please decode the code variable within the link manually." : "";
-        swal({
-          title: "Share program",
-          text: error,
-          icon: error === "" ? "info" : "warning",
-          buttons: {
-            localhost: {
-              text: "Localhost",
-              value: "localhost"
-            },
-            macsim: {
-              text: "MacSim",
-              value: "macsim"
-            }
-          }
-        }).then((value) => {
-          switch(value){
-            case "localhost":
-              navigator.clipboard.writeText(`http://localhost/hud?code=${encodedProgram}`);
-              swal("Copied to clipboard!", { icon: "success" });
-              break;
-            case "macsim":
-              navigator.clipboard.writeText(`http://macsim.duckdns.org/hud?code=${encodedProgram}`);
-              swal("Copied to clipboard!", { icon: "success" });
-              break;
-          }
-        });
-      }
-    }
-    </script>
-
-    <!-- Start Simulation -->
-    <button class="hud-link" id="sim-start">Start Simulation</button>
-    <script>
-      var started = false;
-      document.getElementById("sim-start").onclick = () => {
-        document.getElementById("sim-start").classList.add("hud-link-disabled");
-        document.getElementById("loader").style.visibility = "visible";
-        started = true;
-        // check if sim is already running and throw error accordingly
-        if(craft.getTaskInfo().state !== "Not started"){
-          swal({
-            icon: "error",
-            text: "A simulation is already running. Please wait until it has finished or stop it!"
-          });
-          document.getElementById("sim-start").classList.add("hud-link-disabled");
-          document.getElementById("sim-stop").classList.remove("hud-link-disabled");
-        } else {
-          document.getElementById("sim-start").classList.add("hud-link-disabled");
-
-          // choose the selected sim to run 
-          const select = document.getElementById("sim-select");
-          startSim(select.options[select.selectedIndex].value)
-        }
-      }
-    </script>
-
-    <!-- Stop Simulation -->
-    <button class="hud-link" id="sim-stop">Stop Simulation</button>
-    <script>
-      document.getElementById("sim-stop").onclick = function(){
-        started = false;
-        document.getElementById("sim-stop").classList.add("hud-link-disabled");
-
-        // check if sim hasn't started and throw error accordingly
-        if(craft.getTaskInfo().state === "Not started"){
-          swal({
-            icon: "error",
-            text: "A simulation hasn't been started yet!"
-          });
-          document.getElementById("sim-stop").classList.add("hud-link-disabled");
-          document.getElementById("sim-start").classList.remove("hud-link-disabled");
-          
-        } else {
-          document.getElementById("sim-stop").classList.add("hud-link-disabled");
-          document.getElementById("execute").classList.add("hud-link-disabled");
-          stopSim().then(() => document.getElementById("sim-start").classList.remove("hud-link-disabled"));
-        }
-      };
-    </script>
-
-    <!-- Select simulation -->
-    <select name="sim-type" id="sim-select">
-      <option value="station_keeping" selected>1. Station Keeping</option>
-      <option value="wayfinding">2. Wayfinding</option>
-      <option value="perception">3. Object Localisation and Characterisation</option>
-      <option value="wildlife">4. Wildlife Encounter and Avoid</option>
-      <option value="gymkhana">5. Channel Navigation, Acoustic Beacon Localisation and Obstacle Avoidance</option>
-      <option value="scan_dock_deliver">6. Scan and Dock and Deliver</option>
-      <option value="perception_2">7. Object Localisation and Characterisation V2</option>
-      <option value="perception_3">8. Object Localisation and Characterisation V3</option>
-    </select>
-
-    <!-- Toggle view -->
-    <button class="push hud-link" id="toggle-view">Toggle View</button>
-    <script>
-      const updateOverlay = () => {
-        const img = document.getElementById('camera_stream');
-        const imgBound = img.getBoundingClientRect();
-        const canvas = document.getElementById("stream_overlay");
-
-        canvas.style.position = "absolute";
-        canvas.style.x = imgBound.x + "px";
-        canvas.style.y = imgBound.y + "px";
-        canvas.style.zIndex = 999;
-        canvas.setAttribute("width", imgBound.width)
-        canvas.setAttribute("height", imgBound.height);
-
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      }
-
-      const clearOverlay = () => {
-        const canvas = document.getElementById("stream_overlay");
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      }
-
-      // Toggle map and camera to switch place 
-      document.getElementById("toggle-view").onclick = function(){
-
-        var cam = document.getElementById("camera_stream");
-        var overlay = document.getElementById("stream_overlay");
-        var map = document.getElementById("map");
-
-        // switch to camera view
-        if(map.style.width == "65%"){
-          document.getElementById("body-content").append(cam);
-          document.getElementById("body-content").append(overlay);
-          document.getElementById("bottom-panel").append(map);
-          cam.style.width = "65%";
-          map.style.width = "100%";
-          updateOverlay();
-
-        // switch to map view
-        } else {
-          document.getElementById("body-content").append(map);
-          document.getElementById("bottom-panel").append(cam);
-          document.getElementById("bottom-panel").append(overlay);
-          cam.style.width = "50%";
-          map.style.width = "65%";
-          updateOverlay();
-        }
-      };
-    </script>
-
-
-    <!-- Execute Editor Code -->
-    <button class="hud-link" id="execute">Execute</button>
-    <script>
-      document.getElementById("execute").onclick = function(){
-        if(craft.getTaskInfo().state === "running"){
-          try {
-            eval(editor.getValue());
-          } catch (error) {
-            swal({ 
-              icon: "error",
-              title: "Error executing code.",
-              text: error.message
-            });
-          }
-        } else {
-          swal({
-            icon: "error",
-            text: "A simulation isn't running or is starting up. Please wait until a simulation has started before executing code."
-          });
-        }
-      }
-    </script>
-
-    
-  </div>
-  <div id="body-content">
-  <!-- Google Maps Display -->
-  <div id="map" style="width: 65%">
-      <script>
-        const icon = (rotation, colour, scale) => ({
-          path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z", 
-          fillOpacity: 1,
-          fillColor: colour,
-          scale:0.5*scale, 
-          rotation:(rotation/(Math.PI))*-180
-        });
-        
-        const getAddress = () => {
-          const url = window.location.href;
-          const re = /https?:\/\/(.*)\/hud/;
-          return re.exec(url)[1]
-        }
-
-        const setSelectValue = () => {
-          switch(craft.getTaskInfo().name){
-            case "station_keeping":
-              document.getElementById("sim-select").selectedIndex = 0;
-              break;
-            case "wayfinding":
-              document.getElementById("sim-select").selectedIndex = 1;
-              break;
-            case "perception":
-              document.getElementById("sim-select").selectedIndex = 2;
-              break;
-            case "wildlife":
-              document.getElementById("sim-select").selectedIndex = 3;
-              break;
-            case "gymkhana":
-              document.getElementById("sim-select").selectedIndex = 4;
-              break;
-            case "scan_dock_deliver":
-              document.getElementById("sim-select").selectedIndex = 5;
-              break;
-            case "perception_2":
-              document.getElementById("sim-select").selectedIndex = 6;
-              break;
-            case "perception_3":
-              document.getElementById("sim-select").selectedIndex = 7;
-              break;
-            default:
-              document.getElementById("sim-select").selectedIndex = 0;
-              break;
-          }
-        }
-
-        let craft = init(getAddress());
-        var map;
-        var marker;
-        let simStarted = false;
-
-        function initMap() {
-          map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: -33.7224, lng: 150.67398},
-            zoom: 18,
-            disableDefaultUI: true,
-            scaleControl: true,
-            zoomControl: true,
-            mapTypeId: "satellite",
-          });
-          marker = new google.maps.Marker({
-            position: {lat: -33.722, lng:150.67398},
-            icon: icon(Math.PI/2, "#FFFFFF", 1),
-            map,
-            title: "craft",
-          });
-        }
-
-        setInterval(() => {
-          // Set position of craft
-          marker.setPosition(craft.getGlobalPosition());
-          marker.setIcon(icon(craft.getVelocity().psi, "#FFFFFF", 1));
-          if(craft.getTaskInfo().name === "station_keeping" && craft.getGoalPosition() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
-            new google.maps.Marker({
-              position: craft.getGoalGlobalPosition(),
-              icon: icon(craft.getGoalVelocity().psi, "#05FF05", 0.5),
-              map,
-              title: "goal"
-            });
-          } else if(craft.getTaskInfo().name === "wayfinding" && craft.getWayfindingPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
-            craft.getWayfindingPositions().forEach((position, index) => {
-              new google.maps.Marker({
-                position: position.goal_global,
-                icon: icon(position.goal_vel.psi, "#05FF05", 0.5),
-                map,
-                title: `goal ${index}`
-              });
-            });
-          } else if(craft.getTaskInfo().name === "wildlife" && craft.getAnimalPositions() !== undefined && (craft.getTaskInfo().state === "ready" || craft.getTaskInfo().state === "running")){
-            craft.getAnimalPositions().forEach((position) => {
-              new google.maps.Marker({
-                position: position.animal_global,
-                icon: icon(position.animal_vel.psi, "#05FF05", 0.5),
-                map,
-                title: position.animal_type
-              });
-            });
-          }
-        }, 500);
-        setTimeout(() => setSelectValue(), 3500);
-      </script>
-      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
-      async defer></script>
-  </div>
-  
-  <div id="info-panel">
-
-    <!-- Text Editor  -->
-    <div id="editor"></div>
-    <script>
-      var params = new URLSearchParams(window.location.search);
-      if(params.has("ide") && params.get("ide") === "false"){
-        document.getElementById("editor").setAttribute("show", "false");
-        document.getElementById("editor-controls").style.display = "none";
-      } else {
-        var editor = ace.edit("editor"); 
-        editor.session.setMode("ace/mode/javascript");
-        // Base64 encoded demo
-        if(params.has("code")){
-          editor.setValue(decodeURI(atob(params.get("code"))));
-        }
-      }
-    </script>
-
-    <!-- Console Log -->
-    <div class="panel">
-      <div id="console">
-        <h3>Craft Log</h3>
-        <p id="console-log-body">Output from craft.log output will appear here!</p>
-      </div>
-    </div>
-
-    <div id="bottom-panel" class="panel-half">
-
-    <!-- Information Panel -->
-    <div class="panel">
-      <h3>Details</h3>
-      <p id="state"></p>
-      <script>
-        setInterval(() => {
-          document.getElementById("state").innerHTML = "<strong>Simulation Name</strong>: " + craft.getTaskInfo().name + "</p><strong>Simulation State</strong>: " + craft.getTaskInfo().state + "";
-          
-          // Additional check for button logic in case of page refresh
-          if(craft.getTaskInfo().state == "Not started" && started == false){
-            document.getElementById("sim-stop").classList.add("hud-link-disabled");
-            document.getElementById("execute").classList.add("hud-link-disabled");
-            document.getElementById("sim-start").classList.remove("hud-link-disabled");
-          }
-          if(craft.getTaskInfo().state == "initial" ||
-             craft.getTaskInfo().state == "ready"   || 
-             craft.getTaskInfo().state == "running"){
-              document.getElementById("loader").style.visibility = "hidden";
-              document.getElementById("execute").classList.remove("hud-link-disabled");
-              document.getElementById("sim-stop").classList.remove("hud-link-disabled");
-              document.getElementById("sim-start").classList.add("hud-link-disabled");
-          }
-        }, 500);
-      </script>
-
-    <!-- Time Remaining -->
-      <p id="timer" ></p>
+        <!-- Share  -->
+        <button class="hud-link" id="share">Share</button>
         <script>
-          setInterval(() => {
-            document.getElementById("timer").innerHTML = "<strong>Time remaining</strong>: " + craft.getTaskInfo().remaining_time+" <span style='font-size: 12px'>seconds</span>";
-          }, 500);
+          document.getElementById("share").onclick = function () {
+            const program = editor.getValue();
+            if (program === "") {
+              swal({
+                title: "No code to share :(",
+                icon: "error",
+              });
+            } else {
+              const encodedProgram = encodeURIComponent(btoa(program));
+              const error =
+                encodedProgram.length > 2000
+                  ? "Your program is over the recommended 2000 characters. This may lead to issues with your link. If this occurs, please decode the code variable within the link manually."
+                  : "";
+              swal({
+                title: "Share program",
+                text: error,
+                icon: error === "" ? "info" : "warning",
+                buttons: {
+                  localhost: {
+                    text: "Localhost",
+                    value: "localhost",
+                  },
+                  macsim: {
+                    text: "MacSim",
+                    value: "macsim",
+                  },
+                },
+              }).then((value) => {
+                switch (value) {
+                  case "localhost":
+                    navigator.clipboard.writeText(
+                      `http://localhost/hud?code=${encodedProgram}`
+                    );
+                    swal("Copied to clipboard!", { icon: "success" });
+                    break;
+                  case "macsim":
+                    navigator.clipboard.writeText(
+                      `http://macsim.duckdns.org/hud?code=${encodedProgram}`
+                    );
+                    swal("Copied to clipboard!", { icon: "success" });
+                    break;
+                }
+              });
+            }
+          };
         </script>
 
-      <div id="error" ></div>
-    </div>
-    
-      <!-- Camera Stream -->
-      <img id="camera_stream" src="/get_image" />
-      <canvas id="stream_overlay" width="0" height="0" style="" />
-      <script>
-        const displayBoundingBox = (x, y, width, height, label, score) => {
-          const ctx = document.getElementById("stream_overlay").getContext("2d");
-          const font = "16px sans-serif";
-          ctx.font = font;
-          ctx.textBaseline = "top"; 
-          // Bounding box
-          ctx.strokeStyle = "yellowgreen";
-          ctx.lineWidth = 3;
-          ctx.strokeRect(x, y, width, height);
-          console.log(ctx.strokeRect);
-          // Label box
-          ctx.fillStyle = "yellowgreen";
-          const textWidth = ctx.measureText(`${label} ${(100 * score).toFixed(2)}%`).width;
-          const textHeight = parseInt(font, 10); // base 10
-          ctx.fillRect(x, y, textWidth + 4, textHeight + 4);
-          // Label
-          ctx.fillStyle = "#000000";
-          ctx.fillText(`${label} ${(100 * score).toFixed(2)}%`, x, y);
-        }
-      </script>
+        <!-- Start Simulation -->
+        <button class="hud-link" id="sim-start">Start Simulation</button>
+        <script>
+          const getAddress = () => {
+            const url = window.location.href;
+            const re = /https?:\/\/(.*)\/hud/;
+            return re.exec(url)[1];
+          };
 
-      <script>
-        const re = /https?:\/\/(.*)\/hud/;
+          var started = false;
+          document.getElementById("sim-start").onclick = () => {
+            document
+              .getElementById("sim-start")
+              .classList.add("hud-link-disabled");
+            document.getElementById("loader").style.visibility = "visible";
+            started = true;
+            // check if sim is already running and throw error accordingly
+            if (craft.getTaskInfo().state !== "Not started") {
+              swal({
+                icon: "error",
+                text: "A simulation is already running. Please wait until it has finished or stop it!",
+              });
+              document
+                .getElementById("sim-start")
+                .classList.add("hud-link-disabled");
+              document
+                .getElementById("sim-stop")
+                .classList.remove("hud-link-disabled");
+            } else {
+              document
+                .getElementById("sim-start")
+                .classList.add("hud-link-disabled");
 
-        //Check if simulation is ready, make camera visible and set source
-        var cameraCheck = setInterval(() => {
-          if((craft.getTaskInfo().state == "ready" || craft.getTaskInfo().state == "running")){
-            document.getElementById("camera_stream").style.visibility = "visible";
-            document.getElementById("camera_stream").src = "http://" + re.exec(window.location.href)[1] + ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
-            clearInterval(cameraCheck);
-          }
-        }, 1000);
-      </script>
+              // choose the selected sim to run
+              const select = document.getElementById("sim-select");
+              startSim(
+                select.options[select.selectedIndex].value,
+                `http://${getAddress()}`
+              );
+            }
+          };
+        </script>
+
+        <!-- Stop Simulation -->
+        <button class="hud-link" id="sim-stop">Stop Simulation</button>
+        <script>
+          document.getElementById("sim-stop").onclick = function () {
+            started = false;
+            document
+              .getElementById("sim-stop")
+              .classList.add("hud-link-disabled");
+
+            // check if sim hasn't started and throw error accordingly
+            if (craft.getTaskInfo().state === "Not started") {
+              swal({
+                icon: "error",
+                text: "A simulation hasn't been started yet!",
+              });
+              document
+                .getElementById("sim-stop")
+                .classList.add("hud-link-disabled");
+              document
+                .getElementById("sim-start")
+                .classList.remove("hud-link-disabled");
+            } else {
+              document
+                .getElementById("sim-stop")
+                .classList.add("hud-link-disabled");
+              document
+                .getElementById("execute")
+                .classList.add("hud-link-disabled");
+              stopSim(`http://${getAddress()}`).then(() =>
+                document
+                  .getElementById("sim-start")
+                  .classList.remove("hud-link-disabled")
+              );
+            }
+          };
+        </script>
+
+        <!-- Select simulation -->
+        <select name="sim-type" id="sim-select">
+          <option value="station_keeping" selected>1. Station Keeping</option>
+          <option value="wayfinding">2. Wayfinding</option>
+          <option value="perception">
+            3. Object Localisation and Characterisation
+          </option>
+          <option value="wildlife">4. Wildlife Encounter and Avoid</option>
+          <option value="gymkhana">
+            5. Channel Navigation, Acoustic Beacon Localisation and Obstacle
+            Avoidance
+          </option>
+          <option value="scan_dock_deliver">
+            6. Scan and Dock and Deliver
+          </option>
+          <option value="perception_2">
+            7. Object Localisation and Characterisation V2
+          </option>
+          <option value="perception_3">
+            8. Object Localisation and Characterisation V3
+          </option>
+        </select>
+
+        <!-- Toggle view -->
+        <button class="push hud-link" id="toggle-view">Toggle View</button>
+        <script>
+          const updateOverlay = () => {
+            const img = document.getElementById("camera_stream");
+            const imgBound = img.getBoundingClientRect();
+            const canvas = document.getElementById("stream_overlay");
+
+            canvas.style.position = "absolute";
+            canvas.style.x = imgBound.x + "px";
+            canvas.style.y = imgBound.y + "px";
+            canvas.style.zIndex = 999;
+            canvas.setAttribute("width", imgBound.width);
+            canvas.setAttribute("height", imgBound.height);
+
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          };
+
+          const clearOverlay = () => {
+            const canvas = document.getElementById("stream_overlay");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          };
+
+          // Toggle map and camera to switch place
+          document.getElementById("toggle-view").onclick = function () {
+            var cam = document.getElementById("camera_stream");
+            var overlay = document.getElementById("stream_overlay");
+            var map = document.getElementById("map");
+
+            // switch to camera view
+            if (map.style.width == "65%") {
+              document.getElementById("body-content").append(cam);
+              document.getElementById("body-content").append(overlay);
+              document.getElementById("bottom-panel").append(map);
+              cam.style.width = "65%";
+              map.style.width = "100%";
+              updateOverlay();
+
+              // switch to map view
+            } else {
+              document.getElementById("body-content").append(map);
+              document.getElementById("bottom-panel").append(cam);
+              document.getElementById("bottom-panel").append(overlay);
+              cam.style.width = "50%";
+              map.style.width = "65%";
+              updateOverlay();
+            }
+          };
+        </script>
+
+        <!-- Execute Editor Code -->
+        <button class="hud-link" id="execute">Execute</button>
+        <script>
+          document.getElementById("execute").onclick = function () {
+            if (craft.getTaskInfo().state === "running") {
+              try {
+                eval(editor.getValue());
+              } catch (error) {
+                swal({
+                  icon: "error",
+                  title: "Error executing code.",
+                  text: error.message,
+                });
+              }
+            } else {
+              swal({
+                icon: "error",
+                text: "A simulation isn't running or is starting up. Please wait until a simulation has started before executing code.",
+              });
+            }
+          };
+        </script>
+      </div>
+      <div id="body-content">
+        <!-- Google Maps Display -->
+        <div id="map" style="width: 65%">
+          <script>
+            const icon = (rotation, colour, scale) => ({
+              path: "M -12 5 L -12 -5 L 0 -5 L 0 -18 L 37 0 L 0 18 L 0 5 Z",
+              fillOpacity: 1,
+              fillColor: colour,
+              scale: 0.5 * scale,
+              rotation: (rotation / Math.PI) * -180,
+            });
+
+            // const getAddress = () => {
+            //   const url = window.location.href;
+            //   const re = /https?:\/\/(.*)\/hud/;
+            //   return re.exec(url)[1]
+            // }
+
+            const setSelectValue = () => {
+              switch (craft.getTaskInfo().name) {
+                case "station_keeping":
+                  document.getElementById("sim-select").selectedIndex = 0;
+                  break;
+                case "wayfinding":
+                  document.getElementById("sim-select").selectedIndex = 1;
+                  break;
+                case "perception":
+                  document.getElementById("sim-select").selectedIndex = 2;
+                  break;
+                case "wildlife":
+                  document.getElementById("sim-select").selectedIndex = 3;
+                  break;
+                case "gymkhana":
+                  document.getElementById("sim-select").selectedIndex = 4;
+                  break;
+                case "scan_dock_deliver":
+                  document.getElementById("sim-select").selectedIndex = 5;
+                  break;
+                case "perception_2":
+                  document.getElementById("sim-select").selectedIndex = 6;
+                  break;
+                case "perception_3":
+                  document.getElementById("sim-select").selectedIndex = 7;
+                  break;
+                default:
+                  document.getElementById("sim-select").selectedIndex = 0;
+                  break;
+              }
+            };
+
+            const getWsAddress = () => {
+              const address = getAddress();
+              if (address.includes("gitpod")) {
+                return `ws://${address.replace("8090", "9090")}`;
+              } else {
+                return `ws://${address}:9090`;
+              }
+            };
+
+            let craft = init(getWsAddress());
+            var map;
+            var marker;
+            let simStarted = false;
+
+            function initMap() {
+              map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -33.7224, lng: 150.67398 },
+                zoom: 18,
+                disableDefaultUI: true,
+                scaleControl: true,
+                zoomControl: true,
+                mapTypeId: "satellite",
+              });
+              marker = new google.maps.Marker({
+                position: { lat: -33.722, lng: 150.67398 },
+                icon: icon(Math.PI / 2, "#FFFFFF", 1),
+                map,
+                title: "craft",
+              });
+            }
+
+            setInterval(() => {
+              // Set position of craft
+              marker.setPosition(craft.getGlobalPosition());
+              marker.setIcon(icon(craft.getVelocity().psi, "#FFFFFF", 1));
+              if (
+                craft.getTaskInfo().name === "station_keeping" &&
+                craft.getGoalPosition() !== undefined &&
+                (craft.getTaskInfo().state === "ready" ||
+                  craft.getTaskInfo().state === "running")
+              ) {
+                new google.maps.Marker({
+                  position: craft.getGoalGlobalPosition(),
+                  icon: icon(craft.getGoalVelocity().psi, "#05FF05", 0.5),
+                  map,
+                  title: "goal",
+                });
+              } else if (
+                craft.getTaskInfo().name === "wayfinding" &&
+                craft.getWayfindingPositions() !== undefined &&
+                (craft.getTaskInfo().state === "ready" ||
+                  craft.getTaskInfo().state === "running")
+              ) {
+                craft.getWayfindingPositions().forEach((position, index) => {
+                  new google.maps.Marker({
+                    position: position.goal_global,
+                    icon: icon(position.goal_vel.psi, "#05FF05", 0.5),
+                    map,
+                    title: `goal ${index}`,
+                  });
+                });
+              } else if (
+                craft.getTaskInfo().name === "wildlife" &&
+                craft.getAnimalPositions() !== undefined &&
+                (craft.getTaskInfo().state === "ready" ||
+                  craft.getTaskInfo().state === "running")
+              ) {
+                craft.getAnimalPositions().forEach((position) => {
+                  new google.maps.Marker({
+                    position: position.animal_global,
+                    icon: icon(position.animal_vel.psi, "#05FF05", 0.5),
+                    map,
+                    title: position.animal_type,
+                  });
+                });
+              }
+            }, 500);
+            setTimeout(() => setSelectValue(), 3500);
+          </script>
+          <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDH2csoEoU0MN1xUvPrHK1MY2Gt4MfCFC8&callback=initMap"
+            async
+            defer
+          ></script>
+        </div>
+
+        <div id="info-panel">
+          <!-- Text Editor  -->
+          <div id="editor"></div>
+          <script>
+            var params = new URLSearchParams(window.location.search);
+            if (params.has("ide") && params.get("ide") === "false") {
+              document.getElementById("editor").setAttribute("show", "false");
+              document.getElementById("editor-controls").style.display = "none";
+            } else {
+              var editor = ace.edit("editor");
+              editor.session.setMode("ace/mode/javascript");
+              // Base64 encoded demo
+              if (params.has("code")) {
+                editor.setValue(decodeURI(atob(params.get("code"))));
+              }
+            }
+          </script>
+
+          <!-- Console Log -->
+          <div class="panel">
+            <div id="console">
+              <h3>Craft Log</h3>
+              <p id="console-log-body">
+                Output from craft.log output will appear here!
+              </p>
+            </div>
+          </div>
+
+          <div id="bottom-panel" class="panel-half">
+            <!-- Information Panel -->
+            <div class="panel">
+              <h3>Details</h3>
+              <p id="state"></p>
+              <script>
+                setInterval(() => {
+                  document.getElementById("state").innerHTML =
+                    "<strong>Simulation Name</strong>: " +
+                    craft.getTaskInfo().name +
+                    "</p><strong>Simulation State</strong>: " +
+                    craft.getTaskInfo().state +
+                    "";
+
+                  // Additional check for button logic in case of page refresh
+                  if (
+                    craft.getTaskInfo().state == "Not started" &&
+                    started == false
+                  ) {
+                    document
+                      .getElementById("sim-stop")
+                      .classList.add("hud-link-disabled");
+                    document
+                      .getElementById("execute")
+                      .classList.add("hud-link-disabled");
+                    document
+                      .getElementById("sim-start")
+                      .classList.remove("hud-link-disabled");
+                  }
+                  if (
+                    craft.getTaskInfo().state == "initial" ||
+                    craft.getTaskInfo().state == "ready" ||
+                    craft.getTaskInfo().state == "running"
+                  ) {
+                    document.getElementById("loader").style.visibility =
+                      "hidden";
+                    document
+                      .getElementById("execute")
+                      .classList.remove("hud-link-disabled");
+                    document
+                      .getElementById("sim-stop")
+                      .classList.remove("hud-link-disabled");
+                    document
+                      .getElementById("sim-start")
+                      .classList.add("hud-link-disabled");
+                  }
+                }, 500);
+              </script>
+
+              <!-- Time Remaining -->
+              <p id="timer"></p>
+              <script>
+                setInterval(() => {
+                  document.getElementById("timer").innerHTML =
+                    "<strong>Time remaining</strong>: " +
+                    craft.getTaskInfo().remaining_time +
+                    " <span style='font-size: 12px'>seconds</span>";
+                }, 500);
+              </script>
+
+              <div id="error"></div>
+            </div>
+
+            <!-- Camera Stream -->
+            <img id="camera_stream" src="/get_image" />
+            <canvas id="stream_overlay" width="0" height="0" style="" />
+            <script>
+              const displayBoundingBox = (
+                x,
+                y,
+                width,
+                height,
+                label,
+                score
+              ) => {
+                const ctx = document
+                  .getElementById("stream_overlay")
+                  .getContext("2d");
+                const font = "16px sans-serif";
+                ctx.font = font;
+                ctx.textBaseline = "top";
+                // Bounding box
+                ctx.strokeStyle = "yellowgreen";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x, y, width, height);
+                console.log(ctx.strokeRect);
+                // Label box
+                ctx.fillStyle = "yellowgreen";
+                const textWidth = ctx.measureText(
+                  `${label} ${(100 * score).toFixed(2)}%`
+                ).width;
+                const textHeight = parseInt(font, 10); // base 10
+                ctx.fillRect(x, y, textWidth + 4, textHeight + 4);
+                // Label
+                ctx.fillStyle = "#000000";
+                ctx.fillText(`${label} ${(100 * score).toFixed(2)}%`, x, y);
+              };
+            </script>
+
+            <script>
+              const re = /https?:\/\/(.*)\/hud/;
+
+              //Check if simulation is ready, make camera visible and set source
+              var cameraCheck = setInterval(() => {
+                if (
+                  craft.getTaskInfo().state == "ready" ||
+                  craft.getTaskInfo().state == "running"
+                ) {
+                  document.getElementById("camera_stream").style.visibility =
+                    "visible";
+                  document.getElementById("camera_stream").src =
+                    "http://" +
+                    re.exec(window.location.href)[1] +
+                    ":8080/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+                  clearInterval(cameraCheck);
+                }
+              }, 1000);
+            </script>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  </div>
-</div>
-</body>
+  </body>
 </html>
