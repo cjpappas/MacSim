@@ -111,11 +111,19 @@
               : "red";
         }, 1000);
       </script>
-      <img
-        id="camera_stream"
-        src="http://localhost:8091/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw"
-        alt="No camera stream!"
-      />
+      <img id="camera_stream" src="" alt="No camera stream" />
+      <script>
+        const cameraCheck = setInterval(() => {
+          if (
+            craft.getTaskInfo().state == "ready" ||
+            craft.getTaskInfo().state == "running"
+          ) {
+            document.getElementById("camera_stream").src =
+              "http://localhost:8091/stream?topic=/wamv/sensors/cameras/front_left_camera/image_raw";
+            clearInterval(cameraCheck);
+          }
+        }, 1000);
+      </script>
       <!-- <script>
         var cameraCheck 
       </script> -->
