@@ -233,6 +233,7 @@ const topics = {
  * @returns {Object} Contains functions to interact with simulation.
  */
 const init = (wsUrl, setup = undefined, act = () => {}) => {
+  console.log("connecting on....", wsUrl);
   connection = new ROSLIB.Ros({ url: wsUrl });
   connection.on("connection", () => {
     console.log("Connected to rosbridge server!");
@@ -317,7 +318,7 @@ const setLeftThrusterAngle = (degrees) => {
   const topic = new ROSLIB.Topic({
     ros: connection,
     name: "/wamv/thrusters/left_thrust_angle",
-    msgType: "std_msgs/Float32",
+    messageType: "std_msgs/Float32",
   });
   topic.publish(
     new ROSLIB.Message({
@@ -334,7 +335,7 @@ const setRightThrusterAngle = (degrees) => {
   const topic = new ROSLIB.Topic({
     ros: connection,
     name: "/wamv/thrusters/right_thrust_angle",
-    msgType: "std_msgs/Float32",
+    messageType: "std_msgs/Float32",
   });
   topic.publish(
     new ROSLIB.Message({
@@ -351,7 +352,7 @@ const setLateralThrusterAngle = (degrees) => {
   const topic = new ROSLIB.Topic({
     ros: connection,
     name: "/wamv/thrusters/lateral_thrust_angle",
-    msgType: "std_msgs/Float32",
+    messageType: "std_msgs/Float32",
   });
   topic.publish(
     new ROSLIB.Message({
@@ -368,7 +369,7 @@ const setLeftThrusterPower = (strength) => {
   const topic = new ROSLIB.Topic({
     ros: connection,
     name: "/wamv/thrusters/left_thrust_cmd",
-    msgType: "std_msgs/Float32",
+    messageType: "std_msgs/Float32",
   });
   topic.publish(
     new ROSLIB.Message({
@@ -385,7 +386,7 @@ const setRightThrusterPower = (strength) => {
   const topic = new ROSLIB.Topic({
     ros: connection,
     name: "/wamv/thrusters/right_thrust_cmd",
-    msgType: "std_msgs/Float32",
+    messageType: "std_msgs/Float32",
   });
   topic.publish(
     new ROSLIB.Message({

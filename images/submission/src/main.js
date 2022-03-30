@@ -1,4 +1,11 @@
 ROSLIB = require("roslib");
+const { init, startSim } = require("../../base/html/api.js");
+
+
+const craft = init("ws://0.0.0.0:9090");
+if(craft.getTaskInfo().name == "None"){
+  startSim("station_keeping", "http://0.0.0.0:8090");
+}
 
 const ws_url = `ws://0.0.0.0:9090`;
 
@@ -18,6 +25,21 @@ function setup_connection(){
   info.subscribe((message)=>{
     console.log('Received message on ' + info.name + ' message was: ' + message.state);
   })
+
+  const lf = new ROSLIB.Topic({
+    ros: connection,
+    name : "/wamv/thrusters/left_thrust_cmd",
+    messageType: "std_msgs/Float32"
+  });
+  lf.subscribe((message) => {
+    console.log('Received message on ' + lf.name + ' message was: ' + message.data);
+  })
+  const msg = new ROSLIB.Message({data: 1});
+  setInterval(() => {
+    console.log("publishing topic");
+    lf.publish(msg);
+  },1000);
+
 }
 while (false){
   if(craft.data.task.state === "running"){
