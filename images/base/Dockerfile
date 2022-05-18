@@ -33,5 +33,5 @@ ADD images/base/html /home/developer/html
 # run the vrx station keeping (headless) - fire up a station keeper and just have it go over and over again
 CMD source /home/developer/vrx_ws/devel/setup.bash && (roslaunch rosbridge_server rosbridge_websocket.launch &) && \
     (rosrun web_video_server web_video_server &) && \
-    export FLASK_APP=/home/developer/html/server.py && python3 -m flask run --host=0.0.0.0 --port=80 
+    export FLASK_APP=/home/developer/html/server.py && python3 -m flask run --host=0.0.0.0 --port=8090 
 
